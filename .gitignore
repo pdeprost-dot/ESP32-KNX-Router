@@ -1,0 +1,8 @@
+.pio/
+.venv/
+.tools/
+include/secrets.h
+backup/
+*.bin
+*.elf
+
