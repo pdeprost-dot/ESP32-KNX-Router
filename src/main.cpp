@@ -11,7 +11,7 @@
 #include "router_config.h"
 
 namespace {
-constexpr char kFirmwareVersion[]="0.3.2", kNvs[]="knxrouter";
+constexpr char kFirmwareVersion[]="0.3.3", kNvs[]="knxrouter";
 constexpr uint16_t kConfigVersion=1, kDefaultPort=3671;
 constexpr uint32_t kDefaultMulticast=0xE000170CUL;
 struct RouterConfig { uint16_t version=kConfigVersion; bool paSet=false; uint16_t pa=0; uint32_t multicast=kDefaultMulticast; uint16_t port=kDefaultPort; uint32_t timeoutMs=15000, probeMs=3000; };
