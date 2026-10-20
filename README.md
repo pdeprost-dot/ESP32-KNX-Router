@@ -1,9 +1,11 @@
 # Prototype ESP32 KNX TP ↔ KNXnet/IP sur Wi-Fi
 
-Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1. Il utilise la pile
+Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1 à transceiver NCN5130. Il utilise la pile
 [`thelsing/knx`](https://github.com/thelsing/knx) au commit
 `980c047ad7fc5e27bf2fae95e48acde5d5e0b4fd`, le masque coupleur KNX IP/TP `0x091A`,
 le routage multicast KNXnet/IP et quatre tunnels compilés.
+
+Référence transceiver : [fiche technique NCN5130 ON Semiconductor](https://www.onsemi.com/download/data-sheet/pdf/ncn5130-d.pdf).
 
 Ce prototype n'est pas déclaré équivalent au Siemens N146/02 tant que TP, routage dans les
 deux sens et ETS n'ont pas été validés sur l'installation réelle.
@@ -59,7 +61,9 @@ et tables de filtre avec un produit compatible avec le masque `0x091A`. Aucun gr
 émis par ce firmware de lui-même.
 
 La version initialement flashée conserve `ROUTING_ARMED=0` dans `include/router_config.h` : elle
-teste le dialogue UART local du NanoBCU, mais ne démarre ni multicast KNXnet/IP ni routage. Ne passer
+teste le dialogue UART local du NCN5130, puis passe en bus monitor passif, mais ne démarre ni
+multicast KNXnet/IP, ni tunnels, ni routage. Elle n'envoie aucun ACK et aucune commande applicative
+sur le bus. Ne passer
 ce verrou à `1` qu'après validation de l'adresse physique et de l'isolement du Siemens.
 
 Avant de raccorder le TP, déconnecter du réseau IP **ou** du bus TP le Siemens qui dessert cette
@@ -70,9 +74,28 @@ Les compteurs `IP(rx/tx)` et `TP(rx/tx)` sont affichés toutes les 30 secondes. 
 activité de couche liaison, pas à eux seuls la validation du routage. La pile décrémente le compteur
 de routage (sauf valeur 7 selon KNX) et applique la topologie et la table de filtre.
 
+## Prochain essai matériel, sans routage
+
+Le firmware actuellement flashé est prêt pour ce raccordement :
+
+1. Couper/débrancher l'USB avant le câblage basse tension.
+2. NanoBCU RX → ESP32 GPIO17.
+3. NanoBCU TX → ESP32 GPIO16.
+4. NanoBCU GND → ESP32 GND.
+5. NanoBCU KNX → rouge positif du bus KNX.
+6. NanoBCU GND bus → noir négatif du bus KNX.
+7. Laisser SAV et les deux sorties 3V3 libres.
+8. Alimenter ensuite l'ESP32 par USB.
+
+Le Siemens peut rester actif pour cet essai passif. Le firmware attend `U_Reset.ind`, lit l'état du
+NCN5130, demande son mode bus monitor et affiche les octets des trames TP reçues. Il ne répond pas
+aux télégrammes et ne démarre aucune interface KNXnet/IP.
+
 ## Limites connues
 
-- Le NanoBCU/NCN5120 est documenté comme presque compatible TP-UART ; le dialogue réel reste à tester.
+- Le NCN5130 accepte les services TP-UART employés par la pile et le diagnostic (`U_Reset`,
+  `U_State`, trames de liaison). Son mode 9 bits à 19200 bauds correspond à UART 8E1 côté ESP32.
+- Le NanoBCU n'était pas raccordé lors du premier diagnostic ; l'absence de réponse observée était normale.
 - La configuration ETS complète nécessite un fichier produit adapté ; elle n'est pas fournie par la
   bibliothèque générique seule.
 - Après une perte Wi-Fi, l'ESP32 demande une reconnexion automatique. La reprise multicast et des

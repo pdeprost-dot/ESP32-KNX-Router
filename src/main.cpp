@@ -34,7 +34,12 @@ static uint32_t lastStatus = 0;
 static uint32_t lastNanoProbe = 0;
 static uint32_t nanoResetIndications = 0;
 static uint32_t nanoStateIndications = 0;
-static uint32_t nanoOtherBytes = 0;
+static uint32_t nanoBusFrames = 0;
+static uint32_t nanoFrameOverflows = 0;
+static bool nanoBusMonitor = false;
+static uint8_t nanoFrame[64];
+static size_t nanoFrameLength = 0;
+static uint32_t nanoLastByteUs = 0;
 
 static String physicalAddress(uint16_t address) {
   return String((address >> 12) & 0x0F) + "." +
@@ -75,31 +80,57 @@ static void beginNanoBcuProbe() {
 #if !ROUTING_ARMED
   knxSerial.begin(KNX_UART_BAUD, SERIAL_8E1, KNX_RX_PIN, KNX_TX_PIN);
   while (knxSerial.available()) knxSerial.read();
-  Serial.println("[NANOBCU] diagnostic local actif; routage inactif");
+  Serial.println("[NANOBCU] diagnostic NCN5130 actif; routage inactif");
+#endif
+}
+
+static void finishNanoBusFrame() {
+#if !ROUTING_ARMED
+  if (!nanoBusMonitor || nanoFrameLength == 0) return;
+  ++nanoBusFrames;
+  Serial.printf("[TP-RX #%lu] %u octets:", nanoBusFrames,
+                static_cast<unsigned>(nanoFrameLength));
+  for (size_t i = 0; i < nanoFrameLength; ++i) Serial.printf(" %02X", nanoFrame[i]);
+  Serial.println();
+  nanoFrameLength = 0;
 #endif
 }
 
 static void serviceNanoBcuProbe() {
 #if !ROUTING_ARMED
+  if (nanoBusMonitor && nanoFrameLength != 0 &&
+      micros() - nanoLastByteUs >= NANOBCU_FRAME_GAP_US) {
+    finishNanoBusFrame();
+  }
+
   while (knxSerial.available()) {
     const uint8_t value = static_cast<uint8_t>(knxSerial.read());
-    if (value == 0x03U) {
+    if (!nanoBusMonitor && value == 0x03U) {
       ++nanoResetIndications;
       Serial.println("[NANOBCU] U_Reset.ind recu: dialogue UART valide");
-    } else if ((value & 0x07U) == 0x07U) {
+      knxSerial.write(0x02U);  // U_State.req
+      knxSerial.flush();
+    } else if (!nanoBusMonitor && (value & 0x07U) == 0x07U) {
       ++nanoStateIndications;
-      Serial.printf("[NANOBCU] U_State.ind=0x%02X\n", value);
+      Serial.printf("[NANOBCU] U_State.ind=0x%02X; passage en ecoute TP passive\n", value);
+      knxSerial.write(0x05U);  // U_Busmon.req: aucune emission ni ACK sur KNX TP
+      knxSerial.flush();
+      nanoBusMonitor = true;
     } else {
-      ++nanoOtherBytes;
+      nanoLastByteUs = micros();
+      if (nanoFrameLength < sizeof(nanoFrame)) {
+        nanoFrame[nanoFrameLength++] = value;
+      } else {
+        ++nanoFrameOverflows;
+        nanoFrameLength = 0;
+      }
     }
   }
 
-  if (millis() - lastNanoProbe >= NANObcu_PROBE_INTERVAL_MS) {
+  if (!nanoBusMonitor && nanoResetIndications == 0 &&
+      millis() - lastNanoProbe >= NANOBCU_PROBE_INTERVAL_MS) {
     lastNanoProbe = millis();
     knxSerial.write(0x01U);  // U_Reset.req, service local du transceiver
-    knxSerial.flush();
-    delay(2);
-    knxSerial.write(0x02U);  // U_State.req, service local du transceiver
     knxSerial.flush();
   }
 #endif
@@ -150,8 +181,9 @@ static void printStatus() {
                 counters.ipRx, counters.ipTx, counters.tpRx, counters.tpTx,
                 counters.wifiReconnects, counters.wifiDisconnects, ESP.getFreeHeap());
 #if !ROUTING_ARMED
-  Serial.printf("[NANOBCU] reset_ind=%lu state_ind=%lu autres_octets=%lu\n",
-                nanoResetIndications, nanoStateIndications, nanoOtherBytes);
+  Serial.printf("[NANOBCU] reset_ind=%lu state_ind=%lu busmon=%s trames_tp=%lu debordements=%lu\n",
+                nanoResetIndications, nanoStateIndications, nanoBusMonitor ? "oui" : "non",
+                nanoBusFrames, nanoFrameOverflows);
 #endif
 }
 

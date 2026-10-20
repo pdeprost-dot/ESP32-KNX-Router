@@ -1,6 +1,7 @@
 # Procédure ETS6 (prototype)
 
-1. Isoler la ligne de test : ne pas laisser le Siemens et ce prototype former deux chemins parallèles.
+1. Pour le diagnostic passif avec `ROUTING_ARMED=0`, le Siemens peut rester actif. Avant d'armer le
+   routage, isoler la ligne de test : ne pas laisser le Siemens et ce prototype former deux chemins parallèles.
 2. Définir dans ETS la topologie réelle et choisir une adresse individuelle libre de coupleur.
 3. Importer/associer un produit routeur compatible `0x091A` et la version de pile employée.
 4. Mettre le prototype en mode programmation par la méthode prévue lors de l'essai (le firmware

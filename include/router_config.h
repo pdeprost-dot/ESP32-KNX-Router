@@ -12,5 +12,6 @@
 // Verrou de mise en service. Ne passer à 1 qu'après validation de l'adresse
 // physique et de l'absence de chemin Siemens parallèle sur la même ligne.
 #define ROUTING_ARMED 0
-#define NANObcu_PROBE_INTERVAL_MS 5000UL
+#define NANOBCU_PROBE_INTERVAL_MS 5000UL
+#define NANOBCU_FRAME_GAP_US 5000UL
 
