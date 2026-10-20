@@ -71,3 +71,12 @@ Avant d'ajouter une fonction, conserver les seuils suivants :
 Avec la nouvelle table, l'image peut croître d'environ 464 182 octets avant d'atteindre le seuil de réserve de 20 %. Ce n'est pas une invitation à consommer cette marge sans mesure.
 
 Ces mesures décrivent uniquement le firmware actuel avec la pile KNX arrêtée. Les objets de la bibliothèque KNX sont liés et contribuent déjà aux tailles statiques, mais les buffers, sockets multicast, tunnels et charges transitoires d'un routage actif ne sont pas mesurés. Après activation future, il faudra refaire exactement cette campagne avec trafic TP/IP et quatre tunnels, sans extrapoler les chiffres présents.
+
+## Complément 0.4.0 — écoute KNXnet/IP passive
+
+Le firmware final occupe 1 007 593 octets sur un slot de 1 835 008, soit une
+marge de 827 415 octets. La RAM statique est de 56 472 octets sur 327 680. Après OTA
+et stabilisation Wi-Fi, le heap libre observé allait de 222 884 à 223 420
+octets, avec un minimum historique de 214 640 à 218 284 octets. Le journal
+circulaire ajoute 12 entrées bornées à 64 octets cEMI et n'écrit pas en flash.
+La pile KNX, le routage et les tunnels restent arrêtés.

@@ -53,3 +53,26 @@ Après reprise, `/api/status`, `/`, `/knx`, `/knx-config` et `/ota` ont répondu
 ## Stabilité mémoire 0.2.1
 
 Après stabilisation Wi-Fi, 40 consultations de pages et trois diagnostics NCN5130 complets sans module, le heap libre s'est stabilisé à `223408` octets et le plus grand bloc à `110580` octets. Le minimum historique natif a atteint `183980` octets pendant les réponses Web, sans baisse du niveau stable. Aucun déclin durable n'a été observé. Le détail et les réserves proposées figurent dans [RESOURCE_AUDIT.md](RESOURCE_AUDIT.md).
+
+## Écoute KNXnet/IP passive 0.4.0
+
+L'OTA 0.3.3 vers 0.4.0 a réussi. Le Wi-Fi est revenu sur `example-wifi`, IP
+`192.0.2.156`, RSSI -74 dBm. Les pages statut, KNX et OTA ont répondu et les
+paramètres NVS (`224.0.23.12:3671`, 16 000/3 000 ms, adresse physique vide) ont
+été conservés. L'inscription multicast a reçu quatre datagrammes, tous ignorés
+car différents de `ROUTING_INDICATION`, sans erreur de format. Aucune adresse
+KNX ne peut donc encore être confirmée.
+
+Le heap s'est stabilisé autour de 223 kio. Après plusieurs consultations, le
+ping répondait encore sans perte mais avec 295 à 1 571 ms de latence, tandis
+que HTTP expirait. Les commandes pause/reprise/effacement restent à confirmer
+en situation radio stable ; aucun redémarrage n'a été démontré. L'audit source
+confirme `ROUTING_ARMED=0`, l'absence de démarrage de la pile et de tout envoi
+UDP applicatif. Seuls les rapports IGMP d'adhésion multicast sont possibles.
+
+L'essai réel a reçu six `ROUTING_INDICATION` valides depuis
+`192.0.2.60:3671` : `15.15.22` vers le groupe `2/0/0` et `1.1.211` vers
+`2/1/0`, services `GroupValueWrite`, compteur de routage 5, cEMI de 11 octets
+finissant par `00 80` ou `00 81`. Aucun DPT n'a été supposé. Après l'OTA finale,
+pause, reprise et effacement du journal ont répondu correctement. Deux services
+`0x0201` ont été ignorés comme prévu, sans erreur de décodage.

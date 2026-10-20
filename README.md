@@ -4,15 +4,16 @@ Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1 à transc
 
 ## État logiciel
 
-- application `ESP32-KNX-WIFI-ROUTER` 0.3.2 ;
+- application `ESP32-KNX-WIFI-ROUTER` 0.4.0 ;
 - ESP_BASE 2.4.1, dépôt local au commit `f4d8a4790b29aa93bb87af09ac57d9b76c000d7c` (tag `esp-base-2.4.1`) ;
 - pile `thelsing/knx` épinglée au commit `980c047ad7fc5e27bf2fae95e48acde5d5e0b4fd` ;
 - `ROUTING_ARMED=0` vérifié par `static_assert` ;
-- aucun appel à `knx.start()` ou `knx.loop()` : multicast, routage et tunnels sont inactifs.
+- aucun appel à `knx.start()` ou `knx.loop()` : seule la réception multicast
+  passive est active ; routage, tunnels et émissions restent inactifs.
 
 ESP_BASE fournit Wi-Fi, AP de secours, pages système, logs, MQTT et OTA. L'application ajoute ses routes au serveur Web natif :
 
-- `/knx` : état ESP32, réseau, diagnostic NCN5130, compteurs TP et verrou ;
+- `/knx` : état ESP32, écoute KNXnet/IP, journal borné, diagnostic NCN5130 et verrou ;
 - `/knx-config` : configuration KNX et diagnostic ;
 - `POST /knx-config-save` : validation puis sauvegarde explicite ;
 - `POST /knx-diagnostic` : relance du diagnostic local ;
@@ -69,4 +70,4 @@ python -m esptool --port COM3 write_flash 0x0 backup/original-esp32-2026-10-20-4
 
 Ne pas armer le routage avant d'avoir confirmé avec l'utilisateur l'adresse physique, la topologie ETS et la présence du Siemens sur la même ligne. Deux chemins IP/TP parallèles peuvent produire des doublons ou des boucles. Le prototype n'est pas équivalent au Siemens N146/02 tant que TP, filtrage ETS, routage dans les deux sens et tunnels n'ont pas été validés sur l'installation réelle.
 
-Voir [TESTS.md](TESTS.md) pour les validations factuelles, [RESOURCE_AUDIT.md](RESOURCE_AUDIT.md) pour le bilan des ressources, [OTA_AND_RECOVERY.md](OTA_AND_RECOVERY.md) pour les mises à jour et [WIFI_DIAGNOSTIC.md](WIFI_DIAGNOSTIC.md) pour la reprise réseau.
+Voir [TESTS.md](TESTS.md) pour les validations factuelles, [RESOURCE_AUDIT.md](RESOURCE_AUDIT.md) pour le bilan des ressources, [OTA_AND_RECOVERY.md](OTA_AND_RECOVERY.md) pour les mises à jour, [WIFI_DIAGNOSTIC.md](WIFI_DIAGNOSTIC.md) pour la reprise réseau et [KNX_IP_LISTENER.md](KNX_IP_LISTENER.md) pour l'écoute passive 0.4.0.
