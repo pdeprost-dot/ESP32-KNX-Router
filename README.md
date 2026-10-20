@@ -1,107 +1,72 @@
 # Prototype ESP32 KNX TP ↔ KNXnet/IP sur Wi-Fi
 
-Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1 à transceiver NCN5130. Il utilise la pile
-[`thelsing/knx`](https://github.com/thelsing/knx) au commit
-`980c047ad7fc5e27bf2fae95e48acde5d5e0b4fd`, le masque coupleur KNX IP/TP `0x091A`,
-le routage multicast KNXnet/IP et quatre tunnels compilés.
+Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1 à transceiver **NCN5130**. Le firmware actuellement flashé est une version de diagnostic et de configuration : le routage est verrouillé à la compilation et la pile KNXnet/IP n'est pas démarrée.
 
-Référence transceiver : [fiche technique NCN5130 ON Semiconductor](https://www.onsemi.com/download/data-sheet/pdf/ncn5130-d.pdf).
+## État logiciel
 
-Ce prototype n'est pas déclaré équivalent au Siemens N146/02 tant que TP, routage dans les
-deux sens et ETS n'ont pas été validés sur l'installation réelle.
+- application `ESP32-KNX-WIFI-ROUTER` 0.2.0 ;
+- ESP_BASE 2.4.1, dépôt local au commit `f4d8a4790b29aa93bb87af09ac57d9b76c000d7c` (tag `esp-base-2.4.1`) ;
+- pile `thelsing/knx` épinglée au commit `980c047ad7fc5e27bf2fae95e48acde5d5e0b4fd` ;
+- `ROUTING_ARMED=0` vérifié par `static_assert` ;
+- aucun appel à `knx.start()` ou `knx.loop()` : multicast, routage et tunnels sont inactifs.
 
-## Câblage
+ESP_BASE fournit Wi-Fi, AP de secours, pages système, logs, MQTT et OTA. L'application ajoute ses routes au serveur Web natif :
 
-| NanoBCU v1.1.1 | Wemos ESP32 | Fonction |
-|---|---|---|
-| RX | GPIO17 | émission ESP32 vers NanoBCU |
-| TX | GPIO16 | réception ESP32 depuis NanoBCU |
-| GND | GND | référence commune et KNX noir (-) |
-| KNX | KNX rouge (+) | bus TP |
-| SAV, 3V3, 3V3 | non raccordés | |
+- `/knx` : état ESP32, réseau, diagnostic NCN5130, compteurs TP et verrou ;
+- `/knx-config` : configuration KNX et diagnostic ;
+- `POST /knx-config-save` : validation puis sauvegarde explicite ;
+- `POST /knx-diagnostic` : relance du diagnostic local ;
+- pages ESP_BASE : `/`, `/wifi`, `/mqtt`, `/logs`, `/ota`, `/system` et `/api/status`.
 
-UART2 est réglé à 19200 bauds, 8E1, niveau 3,3 V. UART0 reste réservé au flash et aux logs USB.
+ESP_BASE 2.4.1 n'offre pas d'authentification applicative. L'interface doit rester sur un LAN de confiance.
 
-## Construction
+## Configuration persistante
 
-1. Installer PlatformIO.
-2. Copier `include/secrets.h.example` vers `include/secrets.h` et renseigner le mot de passe
-   du SSID `example-wifi`. Le fichier réel est ignoré par Git.
-3. Compiler avec `pio run`.
-4. Après détection certaine du port : `pio run -t upload --upload-port COMx`.
-5. Lire les logs : `pio device monitor -p COMx -b 115200`.
+La configuration applicative utilise son propre espace NVS `knxrouter`, version 1. Elle n'est écrite que lors d'un enregistrement explicite.
 
-La cible `wemos_d1_mini32` ne doit être utilisée qu'après confirmation que la puce est un ESP32
-classique et que la flash correspond. Exécuter avant le premier flash :
+| Paramètre | Défaut | Validation |
+|---|---:|---|
+| Adresse physique prévue | non configurée | `0..15.0..15.0..255` |
+| Multicast KNXnet/IP | `224.0.23.12` | IPv4 classe D |
+| Port UDP | `3671` | `1..65535` |
+| Délai diagnostic | `15000 ms` | `3000..60000 ms` |
+| Intervalle sondes | `3000 ms` | `500..10000 ms`, inférieur au délai |
+
+Les paramètres KNXnet/IP sont préparés pour une phase ultérieure et ne peuvent pas activer le routage. Le Wi-Fi est maintenant géré et persisté par ESP_BASE ; `include/secrets.h` n'est plus utilisé à l'exécution.
+
+## Câblage du prochain essai
+
+Couper l'USB avant le câblage, puis raccorder :
+
+| NanoBCU v1.1.1 | ESP32 / bus |
+|---|---|
+| RX | GPIO17 (TX ESP32) |
+| TX | GPIO16 (RX ESP32) |
+| GND | GND ESP32 commun |
+| KNX | rouge du bus KNX |
+| GND bus | noir du bus KNX |
+| SAV et sorties 3V3 | laisser libres |
+
+Alimenter ensuite l'ESP32 par USB. UART2 fonctionne à 19200 bauds, 8E1 et 3,3 V ; UART0 reste réservé au flash et aux logs USB.
+
+Le Siemens N146/02 peut rester actif pendant ce diagnostic puisque le prototype ne route rien. Le firmware envoie uniquement `U_Reset.req`, `U_State.req` et `U_Busmon.req`, puis écoute en bus monitor passif. Il n'émet aucune commande applicative et ne répond pas aux télégrammes KNX.
+
+## Construction et restauration
 
 ```text
-python -m esptool --port COMx chip_id
-python -m esptool --port COMx flash_id
+pio run
+pio run -t upload --upload-port COM3
+pio device monitor -p COM3 -b 115200
 ```
 
-Sauvegarder le firmware existant avant remplacement si son utilité est inconnue (taille à adapter
-au résultat de `flash_id`) :
+La carte détectée est un ESP32-D0WD-V3 rev. 3.1 avec 4 Mio de flash, sur COM3 via WCH CH9102 (`VID:PID 1A86:55D4`). La sauvegarde antérieure au premier flash est `backup/original-esp32-2026-10-20-4MiB.bin` (ignorée par Git), SHA-256 `5274C13C496F0FC7A2E037276C009B5F400348DAA9DD16F94EDA95E62200CCF5`.
 
 ```text
-python -m esptool --port COMx read_flash 0x0 0x400000 backup/original-4MiB.bin
+python -m esptool --port COM3 write_flash 0x0 backup/original-esp32-2026-10-20-4MiB.bin
 ```
 
-Restauration :
+## Conditions avant tout routage
 
-```text
-python -m esptool --port COMx write_flash 0x0 backup/original-esp32-2026-10-20-4MiB.bin
-```
+Ne pas armer le routage avant d'avoir confirmé avec l'utilisateur l'adresse physique, la topologie ETS et la présence du Siemens sur la même ligne. Deux chemins IP/TP parallèles peuvent produire des doublons ou des boucles. Le prototype n'est pas équivalent au Siemens N146/02 tant que TP, filtrage ETS, routage dans les deux sens et tunnels n'ont pas été validés sur l'installation réelle.
 
-## Mise en service et ETS6
-
-Le firmware rejoint `224.0.23.12:3671` seulement après connexion Wi-Fi. Une mémoire vierge reste
-non configurée. Il faut attribuer dans ETS une adresse de coupleur cohérente avec la topologie
-(adresse finissant par `.0` pour un coupleur de ligne, par exemple), puis charger les paramètres
-et tables de filtre avec un produit compatible avec le masque `0x091A`. Aucun groupe n'est
-émis par ce firmware de lui-même.
-
-La version initialement flashée conserve `ROUTING_ARMED=0` dans `include/router_config.h` : elle
-teste le dialogue UART local du NCN5130, puis passe en bus monitor passif, mais ne démarre ni
-multicast KNXnet/IP, ni tunnels, ni routage. Elle n'envoie aucun ACK et aucune commande applicative
-sur le bus. Ne passer
-ce verrou à `1` qu'après validation de l'adresse physique et de l'isolement du Siemens.
-
-Avant de raccorder le TP, déconnecter du réseau IP **ou** du bus TP le Siemens qui dessert cette
-même ligne, ou isoler le prototype sur un segment de test. Deux chemins IP/TP parallèles vers la
-même ligne et le même multicast risquent de créer des doublons ou des boucles.
-
-Les compteurs `IP(rx/tx)` et `TP(rx/tx)` sont affichés toutes les 30 secondes. Ils indiquent une
-activité de couche liaison, pas à eux seuls la validation du routage. La pile décrémente le compteur
-de routage (sauf valeur 7 selon KNX) et applique la topologie et la table de filtre.
-
-## Prochain essai matériel, sans routage
-
-Le firmware actuellement flashé est prêt pour ce raccordement :
-
-1. Couper/débrancher l'USB avant le câblage basse tension.
-2. NanoBCU RX → ESP32 GPIO17.
-3. NanoBCU TX → ESP32 GPIO16.
-4. NanoBCU GND → ESP32 GND.
-5. NanoBCU KNX → rouge positif du bus KNX.
-6. NanoBCU GND bus → noir négatif du bus KNX.
-7. Laisser SAV et les deux sorties 3V3 libres.
-8. Alimenter ensuite l'ESP32 par USB.
-
-Le Siemens peut rester actif pour cet essai passif. Le firmware attend `U_Reset.ind`, lit l'état du
-NCN5130, demande son mode bus monitor et affiche les octets des trames TP reçues. Il ne répond pas
-aux télégrammes et ne démarre aucune interface KNXnet/IP.
-
-## Limites connues
-
-- Le NCN5130 accepte les services TP-UART employés par la pile et le diagnostic (`U_Reset`,
-  `U_State`, trames de liaison). Son mode 9 bits à 19200 bauds correspond à UART 8E1 côté ESP32.
-- Le NanoBCU n'était pas raccordé lors du premier diagnostic ; l'absence de réponse observée était normale.
-- La configuration ETS complète nécessite un fichier produit adapté ; elle n'est pas fournie par la
-  bibliothèque générique seule.
-- Après une perte Wi-Fi, l'ESP32 demande une reconnexion automatique. La reprise multicast et des
-  sessions de tunnel doit être testée matériellement ; les clients devront rouvrir leurs sessions.
-- KNX Secure, Ethernet et WireGuard ne font pas partie de ce prototype.
-- Les compteurs sont volatils et remis à zéro au redémarrage.
-
-Voir [TESTS.md](TESTS.md) pour l'état factuel des validations.
-
+Voir [TESTS.md](TESTS.md) pour les validations factuelles.
