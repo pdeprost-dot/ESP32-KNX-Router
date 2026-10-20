@@ -2,7 +2,7 @@
 
 ## Partitionnement retenu
 
-La table versionnée [partitions_ota_1792.csv](partitions_ota_1792.csv) conserve NVS 20 Kio, métadonnées OTA 8 Kio et coredump 64 Kio. Elle fournit deux slots de 1 792 Kio et un SPIFFS de 384 Kio. Le firmware 0.3.1 de 1 003 824 octets laisse 831 184 octets par slot.
+La table versionnée [partitions_ota_1792.csv](partitions_ota_1792.csv) conserve NVS 20 Kio, métadonnées OTA 8 Kio et coredump 64 Kio. Elle fournit deux slots de 1 792 Kio et un SPIFFS de 384 Kio. Le firmware 0.3.2 instrumenté de 1 007 344 octets laisse 827 664 octets par slot.
 
 ESP_BASE 2.4.1 et l'application n'utilisent pas SPIFFS. Les configurations ESP_BASE et KNX sont dans la partition NVS. La réduction est donc adaptée à ce firmware.
 

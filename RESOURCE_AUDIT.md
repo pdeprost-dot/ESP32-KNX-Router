@@ -6,9 +6,9 @@ Date : 2026-10-20. Cible réelle : ESP32-D0WD-V3 rev. 3.1, flash 4 Mio, sans PSR
 
 | Ressource | Capacité | Utilisée | Restante | Utilisation |
 |---|---:|---:|---:|---:|
-| Emplacement application OTA | 1 835 008 o | 1 003 824 o, taille réelle de `firmware.bin` | 831 184 o | 54,70 % |
-| Charge calculée par l'éditeur de liens | 1 835 008 o | 997 245 o | 837 763 o | 54,34 % |
-| RAM statique annoncée par PlatformIO | 327 680 o | 55 232 o | 272 448 o | 16,86 % |
+| Emplacement application OTA | 1 835 008 o | 1 007 344 o, taille réelle de `firmware.bin` | 827 664 o | 54,90 % |
+| Charge calculée par l'éditeur de liens | 1 835 008 o | 1 000 765 o | 834 243 o | 54,54 % |
+| RAM statique annoncée par PlatformIO | 327 680 o | 55 280 o | 272 400 o | 16,87 % |
 
 La taille du fichier binaire est la valeur prudente pour vérifier qu'une image tient dans un slot OTA. La mesure de l'éditeur de liens exclut certains en-têtes et alignements de l'image flash, d'où les 6 579 octets d'écart.
 
@@ -25,7 +25,7 @@ Table décodée directement depuis `.pio/build/wemos_d1_mini32/partitions.bin` :
 | `spiffs` | système de fichiers | `0x390000` | 393 216 o (384 Kio) |
 | `coredump` | diagnostic système | `0x3F0000` | 65 536 o (64 Kio) |
 
-Les deux slots application ont la même capacité. La marge physique actuelle de 831 184 octets s'applique donc au slot actif comme à une mise à jour OTA. L'audit du code d'ESP_BASE 2.4.1 et de cette application ne trouve aucun montage ni accès SPIFFS/LittleFS ; ESP_BASE stocke sa configuration dans NVS. Les références LittleFS du dépôt ESP_BASE appartiennent à un exemple ESP8266 indépendant. Une partition SPIFFS de 384 Kio est néanmoins conservée pour un besoin applicatif futur. L'ancien espace SPIFFS a été sauvegardé avant migration.
+Les deux slots application ont la même capacité. La marge physique actuelle de 827 664 octets s'applique donc au slot actif comme à une mise à jour OTA. L'audit du code d'ESP_BASE 2.4.1 et de cette application ne trouve aucun montage ni accès SPIFFS/LittleFS ; ESP_BASE stocke sa configuration dans NVS. Les références LittleFS du dépôt ESP_BASE appartiennent à un exemple ESP8266 indépendant. Une partition SPIFFS de 384 Kio est néanmoins conservée pour un besoin applicatif futur. L'ancien espace SPIFFS a été sauvegardé avant migration.
 
 ## Mémoire dynamique et piles
 

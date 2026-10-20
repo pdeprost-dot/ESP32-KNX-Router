@@ -42,6 +42,14 @@ Le prochain essai est limité au dialogue local NCN5130 puis à la réception TP
 
 La reconnexion immédiatement consécutive à l'OTA a été validée (`CONNECTED_STA1`, IP `192.0.2.156`). Après les redémarrages USB supplémentaires utilisés pour relire le slot, l'association au point d'accès a ensuite expiré avec les statuts Wi-Fi 4 puis 6 malgré des identifiants présents. L'état final de banc est l'AP de secours `espbase-example-setup` sur `192.168.4.1`. Cela ne remet pas en cause l'écriture OTA vérifiée, mais la qualité radio ou l'accessibilité de `example-wifi` doit être confirmée à l'emplacement définitif.
 
+## Diagnostic Wi-Fi 0.3.2
+
+L'application journalise désormais les événements natifs ESP32, motifs 802.11, BSSID, canal, délais DHCP et RSSI. ESP_BASE retente nativement `example-wifi` toutes les 60 secondes après un essai de 15 secondes, tout en maintenant l'AP de secours.
+
+Trois cycles de redémarrage ont produit des résultats intermittents : `AUTH_EXPIRE` (2), `TIMEOUT` (39), `4WAY_HANDSHAKE_TIMEOUT` (15), associations sans DHCP, et connexions complètes. Deux BSSID ont été observés : `02:00:00:00:00:01` canal 4 et `02:00:00:00:00:01` canal 1. Une reprise réussie sur le premier a obtenu DHCP en 4,405 s à −89 dBm ; une autre en 6,418 s à −81 dBm. Le même BSSID a pu échouer puis réussir, donc aucun n'est épinglé.
+
+Après reprise, `/api/status`, `/`, `/knx`, `/knx-config` et `/ota` ont répondu en HTTP 200 avec des documents complets, parfois après répétition d'une requête. L'état final du banc est de nouveau l'AP de secours car le dernier cycle est resté sur le BSSID canal 1 sans DHCP. Voir [WIFI_DIAGNOSTIC.md](WIFI_DIAGNOSTIC.md).
+
 ## Stabilité mémoire 0.2.1
 
 Après stabilisation Wi-Fi, 40 consultations de pages et trois diagnostics NCN5130 complets sans module, le heap libre s'est stabilisé à `223408` octets et le plus grand bloc à `110580` octets. Le minimum historique natif a atteint `183980` octets pendant les réponses Web, sans baisse du niveau stable. Aucun déclin durable n'a été observé. Le détail et les réserves proposées figurent dans [RESOURCE_AUDIT.md](RESOURCE_AUDIT.md).
