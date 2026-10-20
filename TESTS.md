@@ -29,3 +29,7 @@ Les valeurs testées (`224.0.23.12`, port `3671`, délai `16000 ms`, sonde `3000
 Au démarrage ou après `POST /knx-diagnostic`, le firmware sonde le NCN5130 pendant le délai configuré sans bloquer la boucle. À l'expiration, il journalise une seule fois l'absence et cesse les émissions UART. Ce résultat n'est pas un défaut tant que le NanoBCU n'est pas raccordé.
 
 Le prochain essai est limité au dialogue local NCN5130 puis à la réception TP passive. Le Siemens N146/02 peut rester actif. Aucun essai effectué sans NanoBCU ne justifie de remplacer la pile KNX.
+
+## Stabilité mémoire 0.2.1
+
+Après stabilisation Wi-Fi, 40 consultations de pages et trois diagnostics NCN5130 complets sans module, le heap libre s'est stabilisé à `223408` octets et le plus grand bloc à `110580` octets. Le minimum historique natif a atteint `183980` octets pendant les réponses Web, sans baisse du niveau stable. Aucun déclin durable n'a été observé. Le détail et les réserves proposées figurent dans [RESOURCE_AUDIT.md](RESOURCE_AUDIT.md).

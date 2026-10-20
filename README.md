@@ -4,7 +4,7 @@ Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1 à transc
 
 ## État logiciel
 
-- application `ESP32-KNX-WIFI-ROUTER` 0.2.0 ;
+- application `ESP32-KNX-WIFI-ROUTER` 0.2.1 ;
 - ESP_BASE 2.4.1, dépôt local au commit `f4d8a4790b29aa93bb87af09ac57d9b76c000d7c` (tag `esp-base-2.4.1`) ;
 - pile `thelsing/knx` épinglée au commit `980c047ad7fc5e27bf2fae95e48acde5d5e0b4fd` ;
 - `ROUTING_ARMED=0` vérifié par `static_assert` ;
@@ -69,4 +69,4 @@ python -m esptool --port COM3 write_flash 0x0 backup/original-esp32-2026-10-20-4
 
 Ne pas armer le routage avant d'avoir confirmé avec l'utilisateur l'adresse physique, la topologie ETS et la présence du Siemens sur la même ligne. Deux chemins IP/TP parallèles peuvent produire des doublons ou des boucles. Le prototype n'est pas équivalent au Siemens N146/02 tant que TP, filtrage ETS, routage dans les deux sens et tunnels n'ont pas été validés sur l'installation réelle.
 
-Voir [TESTS.md](TESTS.md) pour les validations factuelles.
+Voir [TESTS.md](TESTS.md) pour les validations factuelles et [RESOURCE_AUDIT.md](RESOURCE_AUDIT.md) pour le bilan flash, partitions, heap et piles.
