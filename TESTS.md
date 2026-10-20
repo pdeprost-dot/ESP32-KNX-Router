@@ -30,6 +30,18 @@ Au démarrage ou après `POST /knx-diagnostic`, le firmware sonde le NCN5130 pen
 
 Le prochain essai est limité au dialogue local NCN5130 puis à la réception TP passive. Le Siemens N146/02 peut rester actif. Aucun essai effectué sans NanoBCU ne justifie de remplacer la pile KNX.
 
+## Migration des partitions et OTA 0.3.1
+
+- table migrée par USB vers deux slots de 1 792 Kio, SPIFFS 384 Kio et coredump 64 Kio ;
+- image complète, NVS, `otadata` et ancien SPIFFS sauvegardés avant migration ;
+- NVS restauré, puis Wi-Fi reprovisionné par la commande série ESP_BASE sans exposer le secret ;
+- paramètres KNX (`224.0.23.12`, `3671`, `16000`, `3000`) conservés ;
+- Web OTA ESP_BASE testé de 0.3.0 vers 0.3.1 : HTTP 200, redémarrage, Wi-Fi connecté et pages Web complètes ;
+- lecture USB du slot `app1` identique au binaire 0.3.1, SHA-256 `DA3BF6C79ADE56CA44D9CA0951E98F80D749956B79556DD31B61BC18716C67D3` ;
+- `ROUTING_ARMED=0`, routage et tunnels toujours inactifs.
+
+La reconnexion immédiatement consécutive à l'OTA a été validée (`CONNECTED_STA1`, IP `192.0.2.156`). Après les redémarrages USB supplémentaires utilisés pour relire le slot, l'association au point d'accès a ensuite expiré avec les statuts Wi-Fi 4 puis 6 malgré des identifiants présents. L'état final de banc est l'AP de secours `espbase-example-setup` sur `192.168.4.1`. Cela ne remet pas en cause l'écriture OTA vérifiée, mais la qualité radio ou l'accessibilité de `example-wifi` doit être confirmée à l'emplacement définitif.
+
 ## Stabilité mémoire 0.2.1
 
 Après stabilisation Wi-Fi, 40 consultations de pages et trois diagnostics NCN5130 complets sans module, le heap libre s'est stabilisé à `223408` octets et le plus grand bloc à `110580` octets. Le minimum historique natif a atteint `183980` octets pendant les réponses Web, sans baisse du niveau stable. Aucun déclin durable n'a été observé. Le détail et les réserves proposées figurent dans [RESOURCE_AUDIT.md](RESOURCE_AUDIT.md).
