@@ -83,3 +83,6 @@ La pile KNX, le routage et les tunnels restent arrêtés.
 
 La version 0.4.1 avec journaux UART/TP utilise 1 009 293 octets de flash et
 57 272 octets de RAM statique. La marge d'un slot OTA est de 825 715 octets.
+
+La version 0.4.2 avec essai de polarité UART réversible utilise 1 010 033 octets
+de flash et 57 280 octets de RAM statique, soit 824 975 octets libres par slot.

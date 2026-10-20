@@ -97,3 +97,10 @@ du signal et le GND commun avant de modifier le protocole.
 
 L'écoute KNXnet/IP est restée active. Aucun routage, tunnel, envoi TP ou rejeu
 n'a été activé.
+
+Après confirmation physique du câblage, la version 0.4.2 a permis un essai
+temporaire avec inversion matérielle de l'UART ESP32. Il n'a produit aucun
+`U_Reset.ind` : réponses brutes `00 07 00`, puis `47 00` à chaque sonde. La
+polarité normale a été immédiatement rétablie et confirmée sur `/knx`. Une
+inversion globale UART est donc exclue. L'essai reste disponible mais non
+persistant ; tout redémarrage revient également en polarité normale.
