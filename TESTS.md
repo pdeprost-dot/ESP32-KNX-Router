@@ -76,3 +76,24 @@ L'essai réel a reçu six `ROUTING_INDICATION` valides depuis
 finissant par `00 80` ou `00 81`. Aucun DPT n'a été supposé. Après l'OTA finale,
 pause, reprise et effacement du journal ont répondu correctement. Deux services
 `0x0201` ont été ignorés comme prévu, sans erreur de décodage.
+
+## Premier essai NanoBCU raccordé — 0.4.1
+
+Le diagnostic 0.4.0 a envoyé cinq `U_Reset.req` sans reconnaître de réponse.
+La version 0.4.1 a ajouté des journaux UART et TP circulaires, sans démarrer la
+pile KNX. Après OTA, six essais ont donné exactement la séquence suivante :
+
+```
+TX:01 RX:FE  TX:01 RX:FE  TX:01 RX:FE
+TX:01 RX:FE  TX:01 RX:FE  TX:01 RX:FE
+```
+
+Chaque octet RX arrive environ 2 ms après le TX. Compteurs : 6 octets TX,
+6 octets RX, 0 `U_Reset.ind`, 0 `U_State.ind`, aucune perte de journal et aucune
+trame TP. `FE` est le complément bit à bit de `01` et n'est pas une réponse de
+reset valide (`03` attendu). Le bus monitor n'a donc volontairement pas été
+activé. Ce résultat impose de vérifier le sens RX/TX, une éventuelle inversion
+du signal et le GND commun avant de modifier le protocole.
+
+L'écoute KNXnet/IP est restée active. Aucun routage, tunnel, envoi TP ou rejeu
+n'a été activé.

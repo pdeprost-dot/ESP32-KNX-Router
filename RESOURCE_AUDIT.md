@@ -80,3 +80,6 @@ et stabilisation Wi-Fi, le heap libre observé allait de 222 884 à 223 420
 octets, avec un minimum historique de 214 640 à 218 284 octets. Le journal
 circulaire ajoute 12 entrées bornées à 64 octets cEMI et n'écrit pas en flash.
 La pile KNX, le routage et les tunnels restent arrêtés.
+
+La version 0.4.1 avec journaux UART/TP utilise 1 009 293 octets de flash et
+57 272 octets de RAM statique. La marge d'un slot OTA est de 825 715 octets.
