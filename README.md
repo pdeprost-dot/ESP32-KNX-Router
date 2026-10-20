@@ -47,7 +47,7 @@ python -m esptool --port COMx read_flash 0x0 0x400000 backup/original-4MiB.bin
 Restauration :
 
 ```text
-python -m esptool --port COMx write_flash 0x0 backup/original-4MiB.bin
+python -m esptool --port COMx write_flash 0x0 backup/original-esp32-2026-10-20-4MiB.bin
 ```
 
 ## Mise en service et ETS6
@@ -57,6 +57,10 @@ non configurée. Il faut attribuer dans ETS une adresse de coupleur cohérente a
 (adresse finissant par `.0` pour un coupleur de ligne, par exemple), puis charger les paramètres
 et tables de filtre avec un produit compatible avec le masque `0x091A`. Aucun groupe n'est
 émis par ce firmware de lui-même.
+
+La version initialement flashée conserve `ROUTING_ARMED=0` dans `include/router_config.h` : elle
+teste le dialogue UART local du NanoBCU, mais ne démarre ni multicast KNXnet/IP ni routage. Ne passer
+ce verrou à `1` qu'après validation de l'adresse physique et de l'isolement du Siemens.
 
 Avant de raccorder le TP, déconnecter du réseau IP **ou** du bus TP le Siemens qui dessert cette
 même ligne, ou isoler le prototype sur un segment de test. Deux chemins IP/TP parallèles vers la

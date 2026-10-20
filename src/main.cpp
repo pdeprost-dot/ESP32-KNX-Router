@@ -31,6 +31,10 @@ static bool knxStarted = false;
 static wl_status_t previousWifiStatus = WL_NO_SHIELD;
 static uint32_t lastWifiAttempt = 0;
 static uint32_t lastStatus = 0;
+static uint32_t lastNanoProbe = 0;
+static uint32_t nanoResetIndications = 0;
+static uint32_t nanoStateIndications = 0;
+static uint32_t nanoOtherBytes = 0;
 
 static String physicalAddress(uint16_t address) {
   return String((address >> 12) & 0x0F) + "." +
@@ -50,6 +54,11 @@ static void onKnxActivity(uint8_t info) {
 static void startKnxOnce() {
   if (knxStarted || WiFi.status() != WL_CONNECTED) return;
 
+#if !ROUTING_ARMED
+  Serial.println("[SECURITE] Routage verrouille (ROUTING_ARMED=0); pile KNXnet/IP non demarree");
+  return;
+#endif
+
   knxPlatform.knxUartPins(KNX_RX_PIN, KNX_TX_PIN);
   knx.readMemory();
   knx.bau().setActivityCallback(onKnxActivity);
@@ -60,6 +69,40 @@ static void startKnxOnce() {
                 physicalAddress(knx.individualAddress()).c_str(),
                 knx.configured() ? "oui" : "non");
   Serial.println("[SECURITE] Ne raccorder le TP qu'apres validation de la topologie et isolement du routeur existant.");
+}
+
+static void beginNanoBcuProbe() {
+#if !ROUTING_ARMED
+  knxSerial.begin(KNX_UART_BAUD, SERIAL_8E1, KNX_RX_PIN, KNX_TX_PIN);
+  while (knxSerial.available()) knxSerial.read();
+  Serial.println("[NANOBCU] diagnostic local actif; routage inactif");
+#endif
+}
+
+static void serviceNanoBcuProbe() {
+#if !ROUTING_ARMED
+  while (knxSerial.available()) {
+    const uint8_t value = static_cast<uint8_t>(knxSerial.read());
+    if (value == 0x03U) {
+      ++nanoResetIndications;
+      Serial.println("[NANOBCU] U_Reset.ind recu: dialogue UART valide");
+    } else if ((value & 0x07U) == 0x07U) {
+      ++nanoStateIndications;
+      Serial.printf("[NANOBCU] U_State.ind=0x%02X\n", value);
+    } else {
+      ++nanoOtherBytes;
+    }
+  }
+
+  if (millis() - lastNanoProbe >= NANObcu_PROBE_INTERVAL_MS) {
+    lastNanoProbe = millis();
+    knxSerial.write(0x01U);  // U_Reset.req, service local du transceiver
+    knxSerial.flush();
+    delay(2);
+    knxSerial.write(0x02U);  // U_State.req, service local du transceiver
+    knxSerial.flush();
+  }
+#endif
 }
 
 static void beginWifi() {
@@ -106,6 +149,10 @@ static void printStatus() {
                 knxStarted ? physicalAddress(knx.individualAddress()).c_str() : "-",
                 counters.ipRx, counters.ipTx, counters.tpRx, counters.tpTx,
                 counters.wifiReconnects, counters.wifiDisconnects, ESP.getFreeHeap());
+#if !ROUTING_ARMED
+  Serial.printf("[NANOBCU] reset_ind=%lu state_ind=%lu autres_octets=%lu\n",
+                nanoResetIndications, nanoStateIndications, nanoOtherBytes);
+#endif
 }
 
 void setup() {
@@ -116,11 +163,13 @@ void setup() {
                 ROUTER_NAME, ESP.getChipRevision(), ESP.getFlashChipSize());
   Serial.printf("[KNX] NanoBCU UART2 RX=GPIO%d TX=GPIO%d %d 8E1\n",
                 KNX_RX_PIN, KNX_TX_PIN, KNX_UART_BAUD);
+  beginNanoBcuProbe();
   beginWifi();
 }
 
 void loop() {
   serviceWifi();
+  serviceNanoBcuProbe();
   if (knxStarted) knx.loop();
 
   if (millis() - lastStatus >= STATUS_INTERVAL_MS) {
