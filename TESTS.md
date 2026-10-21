@@ -291,3 +291,23 @@ temporaire avec inversion matérielle de l'UART ESP32. Il n'a produit aucun
 polarité normale a été immédiatement rétablie et confirmée sur `/knx`. Une
 inversion globale UART est donc exclue. L'essai reste disponible mais non
 persistant ; tout redémarrage revient également en polarité normale.
+
+## Préparation IP vers TP bornée 0.6.0 — 21 octobre 2026
+
+- compilation PlatformIO réussie : RAM statique 64 584 octets sur 327 680,
+  flash 1 031 821 octets sur un slot de 1 835 008 octets ;
+- test indépendant `tools/test_ip_to_tp_stage1.py` réussi : source conservée,
+  compteur 6 vers 5, contrôle TP `BC`, FCS `03`, `U_L_DataEnd=48` ;
+- OTA réussie, version Web `0.6.0`, retour sur `example-wifi` à
+  `192.0.2.156`, pages `/knx`, `/knx-config` et `/ota` HTTP 200 ;
+- paramètres multicast conservés et adresse physique `1.1.253` enregistrée
+  explicitement en NVS ;
+- dialogue NCN5130 après redémarrage : `TX 01`, `RX 03`, `TX 02`, `RX 07`,
+  `TX 05`, sans erreur UART ; Busmon passif restauré ;
+- mode applicatif IP vers TP `PASSIF`, confirmation Siemens `Non`, file vide ;
+- tentative d'activation sans confirmation refusée HTTP 423 ; aucune émission TP ;
+- après plusieurs consultations Web : heap libre observé 208 968 à 212 800
+  octets ; minimum natif 198 420 octets durant la première série et 211 824
+  octets juste après le redémarrage correctif. Aucune baisse durable établie ;
+- aucun `ROUTING_INDICATION` valide observé pendant cette vérification passive.
+  L'essai réel reste donc à effectuer après déconnexion Ethernet du Siemens.
