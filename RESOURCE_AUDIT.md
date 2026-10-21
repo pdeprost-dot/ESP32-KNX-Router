@@ -95,3 +95,7 @@ restent bornés en RAM et aucune écriture périodique en flash n'est ajoutée.
 La version 0.4.4 avec compteurs d'erreurs UART utilise 1 011 349 octets de
 flash et 59 208 octets de RAM statique. Il reste 823 659 octets dans chaque
 slot OTA de 1 835 008 octets.
+
+La version 0.4.5 avec test de boucle UART ponctuel utilise 1 012 105 octets de
+flash et 59 208 octets de RAM statique. Il reste 822 903 octets dans chaque
+slot OTA de 1 835 008 octets.

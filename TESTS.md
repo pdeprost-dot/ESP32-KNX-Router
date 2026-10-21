@@ -68,6 +68,27 @@ mais ne permet pas de distinguer à elle seule un écho matériel, une sortie du
 NanoBCU ou un décodage de ligne incorrect. L'inversion UART globale est en
 revanche défavorisée par les erreurs de parité et les octets non valides.
 
+## Boucle UART2 GPIO17 vers GPIO16 — 0.4.5
+
+NanoBCU déconnecté des lignes UART et pont matériel GPIO17 TX vers GPIO16 RX.
+Le test a forcé UART2 en polarité normale à 19200/8E1, effacé les compteurs,
+suspendu l'automate NCN5130 puis envoyé une seule fois `01 03 55 AA`.
+
+```
++19489 TX:01
++19490 TX:03
++19491 TX:55
++19491 TX:AA
++19500 RX:FF RX:C0 RX:40 RX:25 RX:F5
+```
+
+Résultat : 4 octets TX, 5 octets RX, 2 erreurs de parité, 0 erreur de trame,
+0 débordement FIFO et 0 perte de journal. La boucle ne reproduit donc pas les
+octets émis. Ce test ne met pas en cause le NCN5130, absent des lignes ; il
+oriente le diagnostic vers le chemin local GPIO/UART, le pont ou une charge
+électrique encore présente sur GPIO16/17. Aucune nouvelle sonde n'a été lancée
+après le test : l'état final affiché est `Sondes suspendues`.
+
 | Étape | État | Preuve / résultat |
 |---|---|---|
 | USB / port série | Réussi | COM3, WCH CH9102, `VID:PID 1A86:55D4`, pilote `oem4.inf` |
