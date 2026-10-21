@@ -326,6 +326,15 @@ du PC, avec interface source `192.0.2.123`, TTL 1, destination
 file ni émission TP supplémentaire. Le fichier de preuve local est
 `knx_multicast_wifi_capture.pcapng`.
 
+## Rafales multicast passives 0.6.1 — 21 octobre 2026
+
+Six series `KXDG` de 20 datagrammes ont ete emises a 100, 10 et 2 ms, sans
+puis avec consultation simultanee de `/knx`. La capture PC contient 120/120
+paquets ; l'ESP32 en a recu respectivement 6, 5, 5, 6, 5 et 2. Les pages Web
+synchrones suspendent la desserte UDP pendant 6,28 a 6,72 secondes, mais des
+pertes importantes existent aussi sans Web. Resultats, sequences absentes,
+heap et analyse : [MULTICAST_BURST_TEST.md](MULTICAST_BURST_TEST.md).
+
 Une capture passive de 20 secondes après reconnexion du N146 a reçu un
 `SEARCH_RESPONSE` `0x0202` depuis `192.0.2.60:3671`, MAC
 `02:00:00:00:00:01`, vers le PC. Aucune nouvelle `ROUTING_INDICATION` n'est
