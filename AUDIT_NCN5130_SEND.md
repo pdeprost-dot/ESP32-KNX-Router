@@ -1,37 +1,51 @@
 # Audit du Send Frame Service NCN5130
 
-La table 12 de la fiche NCN5130 définit `U_L_DataEnd` avec `l = dernier index
-+ 1`. La trame OFF contient neuf octets, indexés de 0 à 8 : la commande finale
-attendue est donc `0x40 | 9 = 0x49`, suivie du FCS `DC`. Les deux essais ont
-envoyé `48 DC`, car `TpUartDataLinkLayer::processTxFrameBytes` de thelsing/knx
-utilise directement la position du dernier octet. Notre variante avait recopié
-ce calcul.
+## Conclusion actuelle
 
-La trame TP `BE 11 FD 10 00 E1 00 80 DC` est longue de neuf octets et son XOR,
-FCS compris, vaut `FF`; son checksum `DC` est donc correct. La séquence attendue
-est :
+La cause du rejet n'est pas encore identifiée. Les réponses `47`, puis huit
+`17`, ont été identiques avec `U_L_DataEnd=48` et `49`; ce remplacement n'a donc
+pas résolu le défaut et ne prouve pas que l'un ou l'autre est la cause.
 
-```
-80 BE  81 11  82 FD  83 10  84 00
-85 E1  86 00  87 80  49 DC
-```
+## Preuves
 
-L'écart `48` au lieu de `49` provoque un rejet de longueur : `47` est
-`U_State.ind` avec `receive error`; les huit `17` suivants sont
-`U_State.ind` avec `protocol error`, la séquence ayant perdu sa cohérence.
+- Vraie trame TP capturée : `BC 11 0B 10 0A E1 00 80 22`.
+- cEMI Siemens correspondant : `29 00 BC D0 11 0B 10 0A 01 00 80`.
+- La conversion `CemiFrame::fillTelegramTP` de thelsing copie CTRL1 comme
+  contrôle TP et reconstruit NPCI/LG; elle calcule ensuite le FCS.
+- Notre construction avait posé `AckRequested=0x02`, produisant `BE`; la capture
+  réelle utilise `BC`. Ce bit cEMI ne doit pas être présent dans le contrôle TP.
+- Avec contrôle `BC`, la candidate devient `BC 11 FD 10 00 E1 00 80 DE`; son
+  XOR, FCS compris, vaut `FF`.
+- Aucune commande n'était intercalée dans les rafales capturées. Les journaux
+  sont écrits immédiatement avant chaque appel `HardwareSerial.write`; ils
+  prouvent les appels au pilote, pas les niveaux électriques sur GPIO17.
 
-`U_Reset.req=01` est la seule sortie documentée du Busmon. `U_Reset.ind=03`
-n'est émis qu'à l'entrée en état Normal, où les services d'émission sont
-acceptés. `U_State.ind=07` indique seulement que les cinq erreurs sont absentes;
-il ne décrit pas le mode.
+## U_L_DataEnd
 
-`F1 11 FD FF` signifie `U_SetAddress.req`, adresse haute `11`, adresse basse
-`FD`, puis dummy `FF`. Le NCN5130 ignore complètement ce dernier octet : il ne
-configure ni CRC, ni MARKER, ni répétitions. En revanche, `F1` active l'auto-ACK
-pour l'adresse individuelle stockée et pour toutes les adresses de groupe. Il
-est donc retiré : la source `1.1.253` est déjà dans la trame TP et l'essai ne
-doit acquitter aucun trafic tiers.
+La table NCN5130 dit `l = last index + 1`. Les diagrammes complets montrent les
+octets de données indexés, puis `U_L_DataEnd`, puis le checksum comme octet
+suivant. Le checksum n'est donc pas lui-même une donnée indexée. Pour cette
+trame, la dernière donnée APDU est à l'index 7 : `l=8`, soit `DataEnd=48`.
+Cette lecture concorde avec thelsing/knx, qui utilise la position 8 lorsque sa
+boucle atteint le FCS. La précédente affirmation définitive en faveur de `49`
+était erronée.
 
-Le test hors ligne `tools/test_ncn5130_send_sequence.py` vérifie la longueur,
-le XOR, tous les index, `DataEnd=49`, l'absence de `F1` dans l'initialisation et
-la séquence complète. `TP_TEST_ARMED=0` interdit tout nouvel essai actif.
+## Initialisation et sécurité
+
+`U_Reset.req=01` est la seule sortie documentée de Busmon et `U_Reset.ind=03`
+atteste l'entrée en état Normal. `U_State.ind=07` ne décrit que les erreurs.
+`F1 11 FD FF` active l'auto-ACK individuel et de groupe; `FF` est un dummy
+ignoré. `F1` reste exclu de l'essai afin de ne confirmer aucun trafic tiers.
+
+## Instrumentation préparée
+
+La future émission est transformée en automate : une paire service/donnée est
+écrite toutes les 700 microsecondes, tandis que RX est lu entre les paires. Les
+événements sont horodatés avec `micros()` et associés au numéro de la dernière
+paire envoyée. Cela permettra de déterminer si `47` apparaît après Start,
+pendant les Cont, ou après End/FCS. Aucun essai n'a été lancé après cette
+modification et `TP_TEST_ARMED=0` reste prioritaire.
+
+Le test hors ligne utilise comme oracle la vraie paire cEMI/TP capturée, et non
+le calcul de l'implémentation testée. Il vérifie `BC`, le FCS `DE`, les index
+`80..87`, puis `48 DE`.

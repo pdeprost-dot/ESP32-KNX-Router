@@ -1,5 +1,10 @@
 # Résultat de l'essai OFF avec `U_L_DataEnd=49`
 
+> Rectificatif : cet essai a démontré que `49` ne changeait pas la réponse,
+> mais pas que `49` était correct. L'audit des diagrammes complets conclut que
+> le checksum n'est pas indexé et que `48` est la valeur attendue. La cause du
+> rejet reste inconnue; voir `AUDIT_NCN5130_SEND.md`.
+
 Essai unique réalisé le 21 octobre 2026 avec `TP_TEST_ARMED=1` temporaire,
 `ROUTING_ARMED=0`, sans `F1` et sans ON.
 
