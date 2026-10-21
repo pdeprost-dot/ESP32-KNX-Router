@@ -139,3 +139,40 @@ vérification discriminante est une réinscription IGMP explicite de l'écoute
 ESP32, toujours en passif, suivie d'un nouveau télégramme TP identifiable. Cela
 permettra de tester l'hypothèse d'une adhésion multicast expirée, sans modifier
 OpenVPN, le pare-feu ou UniFi.
+
+## Essai de réinscription IGMP
+
+Sans redémarrage, l'écoute a été arrêtée puis recréée depuis l'interface Web.
+La capture `esp32_igmp_rejoin.pcapng` prouve les échanges suivants émis par
+l'ESP32 `192.0.2.156` :
+
+- IGMP Leave `0x17` vers `224.0.0.2` pour le groupe `224.0.23.12` ;
+- deux Membership Reports `0x16` vers `224.0.23.12` ;
+- compteur d'inscriptions passé de 1 à 2, résultat d'ouverture actif, aucune
+  erreur applicative.
+
+Après réinscription, une première action KNX a produit 11 trames TP, 8
+`ROUTING_INDICATION` visibles par le PC et 4 reçues par l'ESP32. La réception a
+donc repris, mais avec 50 % de pertes sur cette séquence.
+
+Environ huit minutes plus tard, sans nouvelle réinscription, une seconde action
+a produit 6 trames TP et 6 indications N146 capturées par le PC. L'ESP32 en a
+reçu 2 :
+
+| Résultat | N146 capturé PC | ESP32 reçu |
+|---|---:|---:|
+| première séquence après join | 8 | 4 |
+| seconde séquence après ~8 min | 6 | 2 |
+
+La seconde capture montre des rafales contenant plusieurs datagrammes au même
+horodatage ou séparés de quelques dizaines de microsecondes. L'ESP32 a reçu les
+deux premières indications (`1.1.10 -> 1/0/10` puis `1.1.10 -> 1/0/30`) mais a
+perdu quatre indications suivantes, notamment celles de `1.1.219`.
+
+Conclusion : l'expiration IGMP seule n'explique pas le défaut. La réinscription
+restaure une réception partielle, qui tient plusieurs minutes, mais des pertes
+de rafales persistent entre le N146 et l'application ESP32. Aucune
+réinscription périodique n'a été ajoutée. Les prochaines mesures doivent
+distinguer perte radio/AP de débordement du socket UDP/lwIP ou retard de la
+boucle Web, idéalement avec compteurs de réception bas niveau et taille de
+tampon instrumentés avant de modifier le réseau.

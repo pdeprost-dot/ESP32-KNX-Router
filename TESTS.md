@@ -341,3 +341,13 @@ trois cEMI du N146. Pendant la même fenêtre, le compteur ESP32 est resté à 2
 télégrammes valides et aucune des trois indications n'est apparue dans son
 journal multicast. Le mode applicatif est resté passif, file vide, sans nouvelle
 émission TP.
+
+### Réinscription IGMP et tenue
+
+L'arrêt/recréation du socket a émis un Leave IGMP `0x17`, puis deux Membership
+Reports `0x16` pour `224.0.23.12`. Le compteur d'inscriptions est passé de 1 à
+2 sans redémarrage ni erreur. Après cette opération, l'ESP32 a reçu 4 des 8
+indications N146 capturées pendant une première action KNX. Environ huit minutes
+plus tard et sans nouvelle adhésion, il en a reçu 2 sur 6. La réception tient
+donc dans le temps, mais les rafales restent partiellement perdues. Le prototype
+est resté passif, file vide, sans émission TP ni tunnel.
