@@ -2,7 +2,9 @@
 
 Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1 à transceiver **NCN5130**. Le firmware actuellement flashé est une version de diagnostic et de configuration : le routage est verrouillé à la compilation et la pile KNXnet/IP n'est pas démarrée.
 
-La version 0.5.3 ajoute un essai TP manuel strictement borné : source fixe `1.1.253`, destination fixe `2/0/0`, valeur ON/OFF explicite. Cette commande ne constitue pas du routage : elle ne consomme aucun journal, ne retransmet aucun télégramme IP et restaure le Busmon après l'essai. Le NCN5130 est remis en mode normal par `U_Reset`, configuré avec l'adresse individuelle, vérifié par `U_State`, puis reçoit la trame construite avec `CemiFrame`/`TpFrame`. Aucun `U_ACK_REQ` de groupe n'est émis ; l'auto-ACK individuel du transceiver est limité à `1.1.253`. Le protocole et le résultat du premier essai sont détaillés dans [TP_TX_TEST.md](TP_TX_TEST.md).
+La version 0.5.3 a introduit un essai TP manuel borné : source fixe `1.1.253`, destination fixe `2/0/0`, valeur ON/OFF explicite. Les résultats historiques sont détaillés dans [TP_TX_TEST.md](TP_TX_TEST.md). L'audit suivant a identifié deux erreurs de protocole dans cette première implémentation ; elle ne doit plus être utilisée telle quelle.
+
+L'audit 0.5.4 corrige l'index `U_L_DataEnd`, retire `U_SetAddress` car il active aussi l'auto-ACK de groupe, décode explicitement `U_State.ind` et verrouille les émissions par `TP_TEST_ARMED=0`. Voir [AUDIT_NCN5130_SEND.md](AUDIT_NCN5130_SEND.md).
 
 ## État logiciel
 
