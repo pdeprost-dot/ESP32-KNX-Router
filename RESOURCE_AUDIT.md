@@ -99,3 +99,7 @@ slot OTA de 1 835 008 octets.
 La version 0.4.5 avec test de boucle UART ponctuel utilise 1 012 105 octets de
 flash et 59 208 octets de RAM statique. Il reste 822 903 octets dans chaque
 slot OTA de 1 835 008 octets.
+
+La version 0.4.6 avec lecture de configuration effective et résultats 8N1/8E1
+utilise 1 013 781 octets de flash et 59 320 octets de RAM statique. Il reste
+821 227 octets dans chaque slot OTA de 1 835 008 octets.

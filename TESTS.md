@@ -89,6 +89,33 @@ oriente le diagnostic vers le chemin local GPIO/UART, le pont ou une charge
 électrique encore présente sur GPIO16/17. Aucune nouvelle sonde n'a été lancée
 après le test : l'état final affiché est `Sondes suspendues`.
 
+## Boucles UART2 isolées et configuration effective — 0.4.6
+
+Le test 0.4.5 n'a pas été reproduit après isolation complète de chaque format,
+fermeture/réouverture d'UART2 et délai de stabilisation de 5 ms après
+`HardwareSerial.begin()`. Un seul objet `HardwareSerial(2)` accède au
+périphérique ; la pile KNX n'est toujours pas démarrée.
+
+| Réglage relu | Essai 8N1 | Essai 8E1 |
+|---|---:|---:|
+| Débit | 19200 | 19200 |
+| Données | 8 bits | 8 bits |
+| Parité | aucune | paire |
+| Arrêt | 1 bit | 1 bit |
+| Inversion RX/TX | 0 / 0 | 0 / 0 |
+| Flux matériel/logiciel | 0 / 0 | 0 / 0 |
+| RS485 / boucle RS485 / half-duplex | 0 / 0 / 0 | 0 / 0 / 0 |
+| RX pour `01 03 55 AA` | `01 03 55 AA` | `01 03 55 AA` |
+| Erreurs parité/trame/débordement | 0 / 0 / 0 | 0 / 0 / 0 |
+
+La boucle physique GPIO17 vers GPIO16 et UART2 fonctionnent donc correctement
+dans les deux formats. L'échec 0.4.5 est compatible avec un artefact de son
+protocole logiciel (réouverture suivie d'émissions unitaires immédiates) et ne
+démontre pas une défaillance matérielle. UART2 a été restauré en 19200/8E1 normal après les essais,
+mais l'automate NCN5130 reste explicitement suspendu tant que le pont est posé.
+Le test GPIO lent n'a pas été ajouté, car il n'apporterait pas d'information
+supplémentaire après ces deux boucles exactes.
+
 | Étape | État | Preuve / résultat |
 |---|---|---|
 | USB / port série | Réussi | COM3, WCH CH9102, `VID:PID 1A86:55D4`, pilote `oem4.inf` |
