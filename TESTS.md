@@ -311,3 +311,23 @@ persistant ; tout redémarrage revient également en polarité normale.
   octets juste après le redémarrage correctif. Aucune baisse durable établie ;
 - aucun `ROUTING_INDICATION` valide observé pendant cette vérification passive.
   L'essai réel reste donc à effectuer après déconnexion Ethernet du Siemens.
+
+### Validation unicast et capture multicast
+
+Après déconnexion Ethernet confirmée du N146, un unique GroupValueWrite OFF
+unicast, source `15.15.254`, a été routé vers `2/0/0`. Réception IP, conversion
+hop 6 vers 5, TP `BC FF FE 10 00 D1 00 80 03`, écho complet et confirmation
+NCN5130 `8B` ont été observés. L'utilisateur a confirmé l'extinction de la
+lampe. Retour Busmon passif effectué avant reconnexion du N146 ; aucun ON.
+
+En passif, TShark a ensuite capturé sur `Wi-Fi 3` le même datagramme multicast
+du PC, avec interface source `192.0.2.123`, TTL 1, destination
+`224.0.23.12:3671` et charge exacte. L'ESP32 l'a reçu et décodé ; aucune mise en
+file ni émission TP supplémentaire. Le fichier de preuve local est
+`knx_multicast_wifi_capture.pcapng`.
+
+Une capture passive de 20 secondes après reconnexion du N146 a reçu un
+`SEARCH_RESPONSE` `0x0202` depuis `192.0.2.60:3671`, MAC
+`02:00:00:00:00:01`, vers le PC. Aucune nouvelle `ROUTING_INDICATION` n'est
+apparue pendant cette fenêtre sans événement TP. Cette observation confirme la
+présence Ethernet du N146, mais ne remplace pas un essai de routage déclenché.
