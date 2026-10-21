@@ -1,5 +1,19 @@
 # Bilan des essais
 
+## 2026-10-21 - reception NCN5130 independante du Web (0.8.0)
+
+- UART2 possede exclusivement par la tache `knxNcnRx`, 38400/8E1 normal,
+  RX GPIO16 et TX GPIO17.
+- Douze chargements de `/knx` pendant du trafic TP reel : 122 trames valides,
+  aucune trame invalide, resynchronisation, erreur UART ou saturation de file.
+- Blocage HTTP maximal : 17,012 s ; intervalle maximal de desserte UART :
+  9,127 ms ; marge de pile de la tache : 4 696 octets.
+- Test logiciel : `python tools/test_ncn5130_rx_parser.py`.
+- Securite verifiee : `ROUTING_ARMED=0`, mode passif, TP vers IP et tunnels
+  inactifs, aucune emission applicative TP.
+
+Voir [NCN5130_TASK.md](NCN5130_TASK.md) pour les mesures et la delimitation.
+
 Date : 2026-10-20 (Europe/Paris)
 
 ## Reprise après rétablissement de la masse — 0.4.3
