@@ -14,6 +14,15 @@
 
 Voir [HTTP_KNX_PERFORMANCE.md](HTTP_KNX_PERFORMANCE.md).
 
+Validation complete avec journaux remplis : 41 trames TP valides, reponse de
+25 481 octets, 20 chargements Web en 516 a 769 ms apres le premier acces,
+aucune perte de file et marge pile Web stable a 1 980 octets.
+
+Deux repetitions multicast sans reinscription ont echoue partiellement : 4 a
+11 paquets recus sur 20 selon la cadence, avec ou sans Web. La file UDP est
+restee vide de saturation et les erreurs de lecture a zero. L'essai multicast
+IP vers TP n'est donc ni prepare ni arme.
+
 ## 2026-10-21 - reception NCN5130 independante du Web (0.8.0)
 
 - UART2 possede exclusivement par la tache `knxNcnRx`, 38400/8E1 normal,

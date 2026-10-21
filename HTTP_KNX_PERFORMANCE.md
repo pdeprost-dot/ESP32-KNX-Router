@@ -65,3 +65,40 @@ slot OTA de 1 835 008 octets, soit 801 663 octets de marge.
 La page reste volontairement complete. Une route distincte pour les journaux
 pourrait encore reduire sa taille, mais elle n'est pas justifiee par les temps
 mesures apres regroupement et n'a donc pas ete ajoutee.
+
+## Validation avec journaux remplis
+
+Apres plus de trente minutes de fonctionnement, le journal contenait 41
+trames TP valides et ses 16 emplacements d'affichage etaient remplis. Vingt
+chargements consecutifs de `/knx` ont alors donne une reponse de 25 480 a
+25 481 octets. Apres le premier acces a 1 568 ms, les suivants ont pris 516 a
+769 ms. Le corps de 23 393 octets a ete transmis en 23 blocs de 887 a 1 023
+octets, contre 1 067 fragments logiques sans regroupement.
+
+Pendant cet essai : 0 trame TP invalide, 0 resynchronisation, 0 saturation des
+files NCN5130, intervalle maximal de la tache NCN5130 9 158 us et marge de pile
+4 696 octets. La marge minimale loop/Web est restee a 1 980 octets. Elle est
+stable dans le pire cas observe et aucune correction d'allocation n'est donc
+justifiee. Deplacer le tampon vers la RAM statique consommerait 1 Kio en
+permanence sans gain fonctionnel mesure.
+
+## Nouvelle mesure multicast sans reinscription
+
+L'adhesion existante avait plus de trente minutes et le compteur est reste a
+une seule inscription, sans erreur. Deux campagnes completes ont ete lancees
+sans fermer le socket ni rejoindre de nouveau `224.0.23.12`.
+
+| Intervalle | Sans `/knx` | Avec `/knx` | Repetition sans `/knx` | Repetition avec `/knx` |
+|---|---:|---:|---:|---:|
+| 100 ms | 9/20 | 10/20 | 11/20 | 9/20 |
+| 10 ms | 6/20 | 9/20 | 6/20 | 10/20 |
+| 2 ms | 6/20 | 6/20 | 6/20 | 4/20 |
+
+Pour chaque serie, le nombre traite est exactement le nombre lu par le socket.
+La file UDP n'a jamais ete pleine, les erreurs de lecture sont restees a zero
+et l'intervalle maximal de la tache RX est reste entre 7 161 et 7 708 us. Les
+pertes sont donc anterieures au socket ESP32 et ne sont pas correlees au Web.
+
+La condition de preparation du nouvel essai multicast IP vers TP n'est pas
+remplie. Aucun essai OFF n'a ete arme ou emis ; le prototype reste passif avec
+`ROUTING_ARMED=0` et le Siemens peut rester connecte.
