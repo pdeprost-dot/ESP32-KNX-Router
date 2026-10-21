@@ -91,3 +91,7 @@ La version 0.4.3, avec capture UART précoce et journal porté à 192 événemen
 utilise 1 010 645 octets de flash et 59 200 octets de RAM statique. La marge
 reste de 824 363 octets dans chaque slot OTA de 1 835 008 octets. Les journaux
 restent bornés en RAM et aucune écriture périodique en flash n'est ajoutée.
+
+La version 0.4.4 avec compteurs d'erreurs UART utilise 1 011 349 octets de
+flash et 59 208 octets de RAM statique. Il reste 823 659 octets dans chaque
+slot OTA de 1 835 008 octets.

@@ -37,6 +37,37 @@ changement de débit ou de polarité n'a été effectué. L'écoute KNXnet/IP es
 restée active (`224.0.23.12:3671`) ; le routage et les tunnels sont restés
 inactifs avec `ROUTING_ARMED=0`.
 
+## Essai de polarité inversée après réparation — 0.4.4
+
+La version 0.4.4 ajoute les compteurs d'erreurs UART matériels exposés par
+`HardwareSerial::onReceiveError`, sans modifier la reconnaissance de
+`U_Reset.ind` : seul `03` reste accepté. Après OTA, le diagnostic normal au
+démarrage a reproduit six fois `TX:01 RX:FE`, avec zéro erreur UART.
+
+L'essai isolé en polarité inversée, toujours à 19200/8E1 sur GPIO16/17, a donné
+la capture intégrale suivante :
+
+```
++32207 RX:00  TX:01  +32209 RX:07 RX:00
++35207 TX:01  +35209 RX:47 RX:00
++38207 TX:01  +38209 RX:47 RX:00
++41207 TX:01  +41209 RX:47 RX:00
++44207 TX:01  +44209 RX:47 RX:00
++47207 TX:01  +47209 RX:47 RX:00
+```
+
+Compteurs pendant cet essai : 6 erreurs de parité, 0 erreur de trame, 0
+débordement FIFO, 0 perte de journal, 0 `U_Reset.ind`. La polarité normale a
+ensuite été restaurée. Elle a de nouveau produit six fois `TX:01 RX:FE` ; le
+compteur de parité est resté à 6, donc aucune nouvelle erreur n'est apparue en
+mode normal.
+
+`FE` demeure une donnée brute non valide. Sa relation exacte de complément
+avec `01` rend plausible un écho inversé ou un chemin électrique inversant,
+mais ne permet pas de distinguer à elle seule un écho matériel, une sortie du
+NanoBCU ou un décodage de ligne incorrect. L'inversion UART globale est en
+revanche défavorisée par les erreurs de parité et les octets non valides.
+
 | Étape | État | Preuve / résultat |
 |---|---|---|
 | USB / port série | Réussi | COM3, WCH CH9102, `VID:PID 1A86:55D4`, pilote `oem4.inf` |

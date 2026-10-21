@@ -4,7 +4,7 @@ Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1 à transc
 
 ## État logiciel
 
-- application `ESP32-KNX-WIFI-ROUTER` 0.4.3 ;
+- application `ESP32-KNX-WIFI-ROUTER` 0.4.4 ;
 - ESP_BASE 2.4.1, dépôt local au commit `f4d8a4790b29aa93bb87af09ac57d9b76c000d7c` (tag `esp-base-2.4.1`) ;
 - pile `thelsing/knx` épinglée au commit `980c047ad7fc5e27bf2fae95e48acde5d5e0b4fd` ;
 - `ROUTING_ARMED=0` vérifié par `static_assert` ;
@@ -26,6 +26,8 @@ dispose d'un journal circulaire borné de 192 événements et permet d'effacer e
 une opération les journaux et compteurs UART/TP avant une nouvelle campagne.
 L'enchaînement reste strict : `U_State.req` puis `U_Busmon.req` ne sont émis
 qu'après reconnaissance de la réponse `U_Reset.ind` attendue.
+La version 0.4.4 ajoute les compteurs matériels d'erreurs UART de parité, de
+trame et de débordement FIFO fournis par le pilote Arduino ESP32.
 
 ## Configuration persistante
 
