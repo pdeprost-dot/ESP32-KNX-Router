@@ -1,5 +1,19 @@
 # Bilan des essais
 
+## 2026-10-21 - optimisation HTTP `/knx` (0.8.2)
+
+- reference 0.8.0 : 24 942 octets en 11 232 a 11 581 ms ;
+- 455 fragments HTML applicatifs identifies sur la page post-redemarrage ;
+- regroupement fixe de 1 024 octets : 12 appels applicatifs, 27 appels totaux
+  en comptant le cadre ESP_BASE, 349 a 1 104 ms sur six chargements ;
+- construction mesuree 8 358 us, envoi 266 391 us, mutex 43 us au total et
+  0 us pendant l'envoi ;
+- six rafales UDP de 20 paquets a 100/10/2 ms, avec et sans `/knx` : toutes
+  recues et traitees 20/20, sans saturation de file ;
+- mode passif confirme : `ROUTING_ARMED=0`, tunnels et emission TP inactifs.
+
+Voir [HTTP_KNX_PERFORMANCE.md](HTTP_KNX_PERFORMANCE.md).
+
 ## 2026-10-21 - reception NCN5130 independante du Web (0.8.0)
 
 - UART2 possede exclusivement par la tache `knxNcnRx`, 38400/8E1 normal,
