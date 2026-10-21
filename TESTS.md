@@ -335,6 +335,20 @@ synchrones suspendent la desserte UDP pendant 6,28 a 6,72 secondes, mais des
 pertes importantes existent aussi sans Web. Resultats, sequences absentes,
 heap et analyse : [MULTICAST_BURST_TEST.md](MULTICAST_BURST_TEST.md).
 
+## Tache UDP dediee 0.7.0 — 21 octobre 2026
+
+La reception multicast est desormais assuree par une tache FreeRTOS qui est
+seule proprietaire du socket et alimente une file de 32 evenements. Pendant
+les six rafales, le socket et le consommateur ont conserve des bitmaps
+identiques et la file n'a jamais ete pleine, y compris pendant des pages Web
+de 6,9 secondes. Les pertes restantes precedent donc la file applicative.
+
+Le chronometrage attribue l'essentiel du blocage aux appels synchrones
+`sendContent()` du corps de `/knx`. Un essai TP concomitant a aussi montre la
+concatenation de telegrammes en blocs de 30 et 51 octets : le pilote UART ne
+deborde pas, mais la delimitation applicative est perdue tant que sa lecture
+reste dans la boucle Web. Voir [FREERTOS_UDP_RX.md](FREERTOS_UDP_RX.md).
+
 Une capture passive de 20 secondes après reconnexion du N146 a reçu un
 `SEARCH_RESPONSE` `0x0202` depuis `192.0.2.60:3671`, MAC
 `02:00:00:00:00:01`, vers le PC. Aucune nouvelle `ROUTING_INDICATION` n'est
