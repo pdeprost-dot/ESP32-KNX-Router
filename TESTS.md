@@ -139,6 +139,27 @@ le firmware n'a envoyé ni `U_State.req` ni `U_Busmon.req`, et aucune réception
 TP n'a été engagée. Le problème précédent n'est pas considéré comme résolu.
 L'écoute KNXnet/IP est restée active et `ROUTING_ARMED=0`.
 
+## Balayage borné des formats NCN5130 — 0.4.8
+
+Le balayage conserve GPIO16/17 et la polarité normale. Chaque format commence
+par une fermeture/réouverture propre d'UART2, 10 ms de stabilisation, capture
+des octets déjà présents, puis au maximum trois `U_Reset.req=01`.
+
+| Format | Avant émission | Reset 1 | Reset 2 | Reset 3 | Erreurs P/F/O | Résultat |
+|---|---|---|---|---|---|---|
+| 19200/8E1 | aucun | `FE` | `FE` | `FE` | 0/0/0 | aucun `03` |
+| 38400/8E1 | `F8` | `03` | `03` | `03` | 0/0/0 | valide et reproductible |
+| 19200/8N1 | non testé | — | — | — | — | arrêt anticipé demandé |
+| 38400/8N1 | non testé | — | — | — | — | arrêt anticipé demandé |
+
+À 38400/8E1, après les trois réponses `03`, l'unique `U_State.req=02` a reçu
+`07`, réponse reconnue par le masque d'état prévu. L'octet préalable `F8` a été
+conservé comme observation brute et n'a joué aucun rôle dans la validation.
+Le périphérique est resté configuré en 38400/8E1 à la fin du balayage, avec les
+sondes suspendues. Aucun `U_Busmon.req` n'a été envoyé, aucune trame TP n'a été
+mise en attente et aucun routage n'a été activé. L'écoute KNXnet/IP est restée
+active et `ROUTING_ARMED=0`.
+
 | Étape | État | Preuve / résultat |
 |---|---|---|
 | USB / port série | Réussi | COM3, WCH CH9102, `VID:PID 1A86:55D4`, pilote `oem4.inf` |

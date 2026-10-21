@@ -4,7 +4,7 @@ Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1 à transc
 
 ## État logiciel
 
-- application `ESP32-KNX-WIFI-ROUTER` 0.4.7 ;
+- application `ESP32-KNX-WIFI-ROUTER` 0.4.8 ;
 - ESP_BASE 2.4.1, dépôt local au commit `f4d8a4790b29aa93bb87af09ac57d9b76c000d7c` (tag `esp-base-2.4.1`) ;
 - pile `thelsing/knx` épinglée au commit `980c047ad7fc5e27bf2fae95e48acde5d5e0b4fd` ;
 - `ROUTING_ARMED=0` vérifié par `static_assert` ;
@@ -37,6 +37,9 @@ débit, le format, les inversions, les contrôles de flux et le mode RS485.
 La version 0.4.7 applique aussi cette séquence propre aux diagnostics NCN5130 :
 arrêt de l'automate, remise à zéro, réouverture en 19200/8E1 normal, délai de
 stabilisation de 5 ms, puis seulement lancement de `U_Reset.req`.
+La version 0.4.8 ajoute un balayage borné des quatre formats NCN5130. Il s'arrête
+sur trois `U_Reset.ind=03` consécutifs, sonde uniquement `U_State`, puis laisse
+Busmon, le routage et les tunnels arrêtés.
 
 ## Configuration persistante
 
