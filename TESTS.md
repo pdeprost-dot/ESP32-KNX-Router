@@ -2,6 +2,41 @@
 
 Date : 2026-10-20 (Europe/Paris)
 
+## Reprise après rétablissement de la masse — 0.4.3
+
+Les essais 0.4.1/0.4.2 ne sont pas utilisés pour conclure sur le matériel : une
+masse déconnectée a été trouvée puis rétablie. Le firmware 0.4.3 a été compilé,
+déployé par OTA et redémarré avec UART2 en polarité normale, 19200/8E1,
+RX GPIO16 et TX GPIO17. La capture commence avant l'initialisation d'ESP_BASE.
+
+Après remise à zéro explicite des compteurs et journaux, la séquence complète
+suivante a été relevée :
+
+```
++48867 ms TX:01
++48869 ms RX:FE
++51867 ms TX:01
++51869 ms RX:FE
++54867 ms TX:01
++54869 ms RX:FE
++61305 ms TX:01
++61309 ms RX:FE
++64305 ms TX:01
++64308 ms RX:FE
+```
+
+Chaque `U_Reset.req` (`01`) a donc été suivi d'un unique `FE`, après 2, 2, 2,
+4 et 3 ms. Le saut de chronologie entre 54 869 et 61 305 ms correspond a une
+consultation HTTP synchrone de la page, qui retarde la boucle applicative ; il
+ne correspond pas a une perte du journal. Bilan : 5 TX, 5 RX, 0
+`U_Reset.ind`, 0 `U_State.ind`, 0 trame TP, 0 perte sur 192 emplacements.
+
+La réponse de reset attendue n'ayant pas été reconnue, le verrou de séquence a
+correctement interdit l'émission de `U_State.req` et `U_Busmon.req`. Aucun
+changement de débit ou de polarité n'a été effectué. L'écoute KNXnet/IP est
+restée active (`224.0.23.12:3671`) ; le routage et les tunnels sont restés
+inactifs avec `ROUTING_ARMED=0`.
+
 | Étape | État | Preuve / résultat |
 |---|---|---|
 | USB / port série | Réussi | COM3, WCH CH9102, `VID:PID 1A86:55D4`, pilote `oem4.inf` |

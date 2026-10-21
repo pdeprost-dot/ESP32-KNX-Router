@@ -86,3 +86,8 @@ La version 0.4.1 avec journaux UART/TP utilise 1 009 293 octets de flash et
 
 La version 0.4.2 avec essai de polarité UART réversible utilise 1 010 033 octets
 de flash et 57 280 octets de RAM statique, soit 824 975 octets libres par slot.
+
+La version 0.4.3, avec capture UART précoce et journal porté à 192 événements,
+utilise 1 010 645 octets de flash et 59 200 octets de RAM statique. La marge
+reste de 824 363 octets dans chaque slot OTA de 1 835 008 octets. Les journaux
+restent bornés en RAM et aucune écriture périodique en flash n'est ajoutée.
