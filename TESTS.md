@@ -331,3 +331,13 @@ Une capture passive de 20 secondes après reconnexion du N146 a reçu un
 `02:00:00:00:00:01`, vers le PC. Aucune nouvelle `ROUTING_INDICATION` n'est
 apparue pendant cette fenêtre sans événement TP. Cette observation confirme la
 présence Ethernet du N146, mais ne remplace pas un essai de routage déclenché.
+
+### Capture simultanée TP / N146 / ESP32
+
+Trois télégrammes rapprochés ont été reçus par le NanoBCU et exportés par le
+N146. La capture `n146_tp_ip_simultaneous.pcapng` montre une concordance exacte
+des sources, destinations et APDU ; le compteur passe de 6 sur TP à 5 dans les
+trois cEMI du N146. Pendant la même fenêtre, le compteur ESP32 est resté à 22
+télégrammes valides et aucune des trois indications n'est apparue dans son
+journal multicast. Le mode applicatif est resté passif, file vide, sans nouvelle
+émission TP.

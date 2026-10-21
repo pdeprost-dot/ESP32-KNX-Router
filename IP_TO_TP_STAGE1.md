@@ -98,3 +98,44 @@ N146, mais pas une exportation récente du bus. La vérification discriminante
 suivante consiste à produire un nouveau télégramme TP identifiable, sans viser
 la lampe de test, tout en capturant `192.0.2.60 -> 224.0.23.12:3671` et en
 comparant le journal ESP32.
+
+## Capture simultanée TP / N146 / ESP32
+
+Une capture passive ultérieure a observé trois télégrammes rapprochés. Le
+NanoBCU les a reçus sous forme TP, tandis que TShark capturait les trois
+`ROUTING_INDICATION` émises par le N146 :
+
+| Source | Destination | APDU | Hop TP | Hop cEMI N146 |
+|---|---|---|---:|---:|
+| `1.1.11` | `2/2/11` | `00 80 33` | 6 | 5 |
+| `1.1.219` | `2/1/10` | `00 81` | 6 | 5 |
+| `1.1.219` | `2/2/12` | `00 80 33` | 6 | 5 |
+
+Trames TP brutes, séparées par l'indication Busmon `CC` :
+
+```
+BC 11 0B 12 0B E2 00 80 33 11 CC
+BC 11 DB 11 0A E1 00 81 F2 CC
+BC 11 DB 12 0C E2 00 80 33 C6 CC
+```
+
+cEMI extraits de la capture du N146 :
+
+```
+29 00 BC D0 11 0B 12 0B 02 00 80 33
+29 00 BC D0 11 DB 11 0A 01 00 81
+29 00 BC D0 11 DB 12 0C 02 00 80 33
+```
+
+Sources, destinations et APDU concordent exactement. Le N146 décrémente
+correctement le compteur de routage de 6 sur TP à 5 dans cEMI. Toutefois,
+l'ESP32 n'a reçu aucun de ces trois multicasts : son compteur de télégrammes
+valides est resté à 22 et aucune nouvelle entrée `192.0.2.60:3671` n'est
+apparue. La capture PC prouve donc l'émission du N146, mais aussi une perte de
+distribution vers le client Wi-Fi ESP32 pendant cette fenêtre.
+
+Le fichier de preuve est `n146_tp_ip_simultaneous.pcapng`. La prochaine
+vérification discriminante est une réinscription IGMP explicite de l'écoute
+ESP32, toujours en passif, suivie d'un nouveau télégramme TP identifiable. Cela
+permettra de tester l'hypothèse d'une adhésion multicast expirée, sans modifier
+OpenVPN, le pare-feu ou UniFi.
