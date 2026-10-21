@@ -116,6 +116,29 @@ mais l'automate NCN5130 reste explicitement suspendu tant que le pont est posé.
 Le test GPIO lent n'a pas été ajouté, car il n'apporterait pas d'information
 supplémentaire après ces deux boucles exactes.
 
+## Diagnostic NCN5130 après reconnexion — 0.4.7
+
+Après retrait du pont GPIO17 vers GPIO16 et reconnexion du NanoBCU, une nouvelle
+campagne a commencé par l'arrêt de l'automate, l'effacement des compteurs, la
+fermeture/réouverture d'UART2 en 19200/8E1 normal et une stabilisation de 5 ms.
+La capture complète est :
+
+```
++15412 TX:01  +15415 RX:FE
++18412 TX:01  +18415 RX:FE
++21412 TX:01  +21415 RX:FE
++24412 TX:01  +24415 RX:FE
++27412 TX:01  +27415 RX:FE
++30412 TX:01  +30415 RX:FE
+```
+
+Bilan : 6 TX, 6 RX, latence constante de 3 ms, 0 erreur de parité, 0 erreur de
+trame, 0 débordement FIFO et 0 perte de journal. Aucun `U_Reset.ind` valide
+(`03`) n'a été reçu. `FE` reste une donnée brute non reconnue. En conséquence,
+le firmware n'a envoyé ni `U_State.req` ni `U_Busmon.req`, et aucune réception
+TP n'a été engagée. Le problème précédent n'est pas considéré comme résolu.
+L'écoute KNXnet/IP est restée active et `ROUTING_ARMED=0`.
+
 | Étape | État | Preuve / résultat |
 |---|---|---|
 | USB / port série | Réussi | COM3, WCH CH9102, `VID:PID 1A86:55D4`, pilote `oem4.inf` |
