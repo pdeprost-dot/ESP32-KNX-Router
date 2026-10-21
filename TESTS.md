@@ -160,6 +160,35 @@ sondes suspendues. Aucun `U_Busmon.req` n'a été envoyé, aucune trame TP n'a �
 mise en attente et aucun routage n'a été activé. L'écoute KNXnet/IP est restée
 active et `ROUTING_ARMED=0`.
 
+## Bus monitor TP et comparaison KNX/IP — 0.5.0/0.5.1
+
+Le réglage permanent est désormais 38400/8E1, polarité normale, RX GPIO16 et
+TX GPIO17. Au redémarrage : `TX:01 RX:03`, `TX:02 RX:07`, puis `TX:05` active
+le bus monitor passif. Aucune erreur UART n'a été relevée.
+
+Après actionnement d'un interrupteur, huit télégrammes TP ont été reçus sans
+perte. Le NCN5130 ajoute `CC` après chaque trame TP ; cet octet d'encapsulation
+est exclu du contrôle checksum et du décodage. Les huit checksums TP sont
+valides. Exemples observés :
+
+| Source | Destination | Service | APDU TP | Correspondance Siemens |
+|---|---|---|---|---|
+| `1.1.11` | `2/0/10` | GroupValueWrite | `00 80` | mêmes champs/APDU, IP +86 ms |
+| `1.1.219` | `2/2/12` | GroupValueWrite | `00 80 00` | mêmes champs/APDU, IP +35 ms |
+| `1.1.11` | `2/0/10` | GroupValueWrite | `00 81` | mêmes champs/APDU, IP +28 ms |
+
+Le compteur de routage vaut 6 dans le télégramme TP et 5 dans le cEMI relayé,
+ce qui est cohérent avec le franchissement du routeur Siemens. Les différences
+d'encapsulation sont ignorées lors de la comparaison : TP contient son checksum
+et le terminateur NCN5130 `CC`, tandis que KNX/IP contient l'en-tête cEMI
+`29 00` et les champs de contrôle cEMI. La version 0.5.1 limite la corrélation
+à 500 ms pour éviter de rapprocher à tort des commandes répétées identiques.
+
+Certaines trames TP n'ont pas de correspondant IP proche ; cela peut refléter
+le filtrage ou le comportement de répétition du Siemens et ne déclenche aucune
+réémission du prototype. `ROUTING_ARMED=0`, tunnels arrêtés et aucune émission
+TP↔IP sont maintenus.
+
 | Étape | État | Preuve / résultat |
 |---|---|---|
 | USB / port série | Réussi | COM3, WCH CH9102, `VID:PID 1A86:55D4`, pilote `oem4.inf` |

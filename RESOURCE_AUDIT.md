@@ -111,3 +111,10 @@ octets dans chaque slot OTA de 1 835 008 octets.
 La version 0.4.8 avec balayage borné des quatre formats UART utilise 1 017 361
 octets de flash et 59 832 octets de RAM statique. Il reste 817 647 octets dans
 chaque slot OTA de 1 835 008 octets.
+
+La version finale 0.5.1 avec UART permanent à 38400/8E1, journal TP décodé et
+corrélation TP/IP utilise 1 019 773 octets de flash et 60 472 octets de RAM
+statique. Il reste 815 235 octets dans chaque slot OTA de 1 835 008 octets.
+En fonctionnement réel après Wi-Fi et bus monitor, 216 576 octets de heap libre
+ont été observés, avec un minimum historique de 197 876 octets et un plus grand
+bloc de 110 580 octets. Aucune perte de journal UART, TP ou IP n'a été relevée.

@@ -4,7 +4,7 @@ Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1 à transc
 
 ## État logiciel
 
-- application `ESP32-KNX-WIFI-ROUTER` 0.4.8 ;
+- application `ESP32-KNX-WIFI-ROUTER` 0.5.1 ;
 - ESP_BASE 2.4.1, dépôt local au commit `f4d8a4790b29aa93bb87af09ac57d9b76c000d7c` (tag `esp-base-2.4.1`) ;
 - pile `thelsing/knx` épinglée au commit `980c047ad7fc5e27bf2fae95e48acde5d5e0b4fd` ;
 - `ROUTING_ARMED=0` vérifié par `static_assert` ;
@@ -68,7 +68,8 @@ Couper l'USB avant le câblage, puis raccorder :
 | GND bus | noir du bus KNX |
 | SAV et sorties 3V3 | laisser libres |
 
-Alimenter ensuite l'ESP32 par USB. UART2 fonctionne à 19200 bauds, 8E1 et 3,3 V ; UART0 reste réservé au flash et aux logs USB.
+Alimenter ensuite l'ESP32 par USB. UART2 fonctionne à **38400 bauds, 8E1,
+polarité normale** et 3,3 V ; UART0 reste réservé au flash et aux logs USB.
 
 Le Siemens N146/02 peut rester actif pendant ce diagnostic puisque le prototype ne route rien. Le firmware envoie uniquement `U_Reset.req`, `U_State.req` et `U_Busmon.req`, puis écoute en bus monitor passif. Il n'émet aucune commande applicative et ne répond pas aux télégrammes KNX.
 
