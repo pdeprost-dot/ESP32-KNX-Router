@@ -21,6 +21,24 @@
 - après ces requêtes passives : Busmon conservé, dialogue initial UART limité à
   `01/03/02/07/05`, aucune erreur UART et aucune émission applicative TP.
 
+### Diagnostic du bouton Test ETS6
+
+La capture `ets6_handshake_live.pcapng` établit la séquence suivante :
+
+1. ETS (`192.0.2.123:60190`) envoie un CONNECT_REQUEST link-layer complet ;
+2. l'ESP32 répond avec succès sur le canal 1, endpoint
+   `192.0.2.156:3671`, CRD tunnel `1.1.254` ;
+3. ETS envoie immédiatement un second CONNECT_REQUEST court de type
+   `DEVICE_MGMT_CONNECTION (0x03)` ;
+4. cette version l'ignore, puis conserve le canal 1 ;
+5. les nouvelles demandes tunnel reçoivent `0x24 E_NO_MORE_CONNECTIONS`.
+
+Le compteur observé était 3 connexions, 21 refus, 2 expirations et aucun
+TUNNELING_REQUEST. Le canal résiduel a été libéré explicitement et Busmon a été
+restauré. Un refus n'incrémente pas le canal et ne crée pas de session. La pile
+thelsing de référence traite séparément les types 3 et 4 ; la prise en charge
+du service de gestion reste à implémenter, sans augmenter le nombre de tunnels.
+
 ## 2026-10-21 - optimisation HTTP `/knx` (0.8.2)
 
 - reference 0.8.0 : 24 942 octets en 11 232 a 11 581 ms ;

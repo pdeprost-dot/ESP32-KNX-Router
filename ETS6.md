@@ -48,6 +48,10 @@ le prototype ne fait aucun routage multicast.
 - aucune promesse de reprise/rollback de session après redémarrage ;
 - les files UDP/UART sont bornées et une saturation est comptabilisée ;
 - ce prototype n'est pas encore un routeur bidirectionnel complet.
+- le bouton **Test** d'ETS6 ouvre aussi une connexion de gestion de périphérique
+  (`0x03`) après le tunnel (`0x04`). La version 0.9.0 ne traite pas encore ce
+  second service : le tunnel initial réussit, puis ETS affiche à tort que les
+  connexions sont épuisées. Ne pas poursuivre vers le TP avant correction.
 
 Le test logiciel `tools/test_knx_tunnel_protocol.py` vérifie indépendamment les
 octets de CONNECT_RESPONSE (CRD `1.1.254`), TUNNELING_ACK et l'encapsulation cEMI.
