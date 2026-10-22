@@ -48,3 +48,47 @@ Les pertes observées pendant les essais reproduisent une indisponibilité effec
 - garder l'AP de secours accessible pendant le diagnostic.
 
 Le routage KNX reste totalement indépendant de ce diagnostic et `ROUTING_ARMED=0` demeure obligatoire.
+
+## Essai multicast sans économie Wi-Fi — firmware 0.9.5
+
+L'application relève désormais le mode effectif avec `esp_wifi_get_ps()` après
+l'initialisation d'ESP_BASE. Au démarrage de l'essai, l'API a retourné
+`WIFI_PS_MIN_MODEM` avec `ESP_OK`. L'application a alors appelé
+`WiFi.setSleep(false)` puis relu `WIFI_PS_NONE`, également avec `ESP_OK`.
+ESP_BASE et UniFi n'ont pas été modifiés. L'état avant/après et les codes de
+retour sont visibles dans `/knx`.
+
+Six rafales KXDG de 20 paquets ont été émises immédiatement, puis à nouveau
+après trente minutes sans redémarrage ni réinscription multicast forcée. Les
+captures PC contiennent chacune les 120 paquets KXDG émis.
+
+| Série | Intervalle | `/knx` | Immédiat | Après 30 min |
+|---:|---:|:---:|---:|---:|
+| 1 | 100 ms | non | 18/20 | 17/20 |
+| 2 | 10 ms | non | 19/20 | 16/20 |
+| 3 | 2 ms | non | 19/20 | 16/20 |
+| 4 | 100 ms | oui | 19/20 | 18/20 |
+| 5 | 10 ms | oui | 13/20 | 15/20 |
+| 6 | 2 ms | oui | 11/20 | 14/20 |
+
+Dans les deux campagnes, le bitmap reçu par le socket est identique au bitmap
+traité par l'application. La file UDP est restée à zéro perte, sans erreur de
+lecture ni datagramme surdimensionné. Après trente minutes, l'ESP32 était
+toujours sur la même association logique (1 association, 1 DHCP, 0
+déconnexion), avec une seule adhésion multicast réussie et `WIFI_PS_NONE`
+toujours effectif.
+
+La suppression de l'économie Wi-Fi est corrélée à une nette amélioration par
+rapport aux anciennes séries, mais n'élimine pas les pertes. Le RSSI de cette
+campagne était faible, environ -80 à -85 dBm, et les paquets absents n'ont
+jamais atteint le socket ESP32. Ce test ne permet donc pas d'attribuer les
+pertes restantes à l'application ni de distinguer à lui seul le trajet radio,
+le point d'accès et la distribution multicast du réseau.
+
+Captures :
+
+- `udp_multicast_bursts_wifi_ps_none_immediate_095.pcapng` ;
+- `udp_multicast_bursts_wifi_ps_none_after30m_095.pcapng`.
+
+Le prototype est resté en Busmon passif, tunnels désactivés et
+`ROUTING_ARMED=0` pendant toute la mesure.
