@@ -507,3 +507,16 @@ est resté passif, file vide, sans émission TP ni tunnel.
 - après réactivation manuelle, reconnexion automatique Node-RED sur canal 1 en
   `15.15.22`, sans requête ni rejeu applicatif au CONNECT ;
 - routage multicast resté désactivé, ESP_BASE inchangé.
+
+## Coexistence ETS6 / Node-RED et flux tunnel sortant
+
+- Node-RED maintenu sur canal 1 pendant une lecture ETS6 de `1.1.7` ;
+- ETS sur le second tunnel `1.1.252` : 50/50 émissions TP confirmées, aucune
+  confirmation négative ou absente ; session tunnel et gestion libérées ;
+- aucune saturation NCN5130, aucune erreur UART, marges de pile préservées ;
+- anomalie établie : le serveur envoyait plusieurs indications simultanées et
+  comparait les ACK uniquement au dernier numéro émis (35 faux `ackErr` ETS) ;
+- correction `0.10.3-dev` compilée, non déployée : file TX bornée par session,
+  stop-and-wait, deux répétitions maximum, timeout et compteurs séparés ;
+- `tools/test_tunnel_tx_flow.py`, tests découverte et routeur : OK ;
+- RAM 68 656 / 327 680 octets, flash 1 058 813 / 1 835 008 octets.

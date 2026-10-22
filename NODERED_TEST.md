@@ -208,3 +208,33 @@ La decouverte unicast reelle valide SEARCH (76 octets) et DESCRIPTION
 Routing n'est pas annonce. La distribution d'une requete multicast par le LAN
 reste une question de transport distincte et n'est pas deduite de cet essai
 unicast.
+
+## Coexistence Node-RED et ETS6 sous charge Web
+
+Une lecture ETS6 de `1.1.7` a ete executee pendant que Node-RED restait connecte
+et que `/knx` etait consulte. Les deux canaux ont coexiste, puis ETS a ferme ses
+connexions sans laisser de session occupee :
+
+- Node-RED : canal 1, adresse `15.15.22`, session maintenue ;
+- ETS6 : second tunnel, adresse `1.1.252`, puis DISCONNECT propre ;
+- gestion ETS : une connexion, deux requetes acquittees, DISCONNECT propre ;
+- ETS : 50 requetes TP, 50 confirmations positives, 0 negative, 0 timeout ;
+- files NCN5130 : 0 saturation sur 8 ; erreurs UART : 0/0/0 ;
+- heap libre 161 308 octets, plus grand bloc interne 106 484 octets ; marges de
+  pile Web/UDP/NCN5130 1 788/2 836/4 444 octets.
+
+La capture a aussi revele 35 ACK ETS et 2 ACK Node-RED classes en erreur alors
+que le dialogue TP etait integralement confirme. L'analyse du code etablit que
+plusieurs `TUNNELLING_REQUEST` sortants pouvaient etre simultanement en vol et
+que seul le dernier numero de sequence etait accepte. Il s'agit d'un defaut de
+flux sortant du serveur, pas d'une preuve de perte reseau.
+
+La preparation `0.10.3-dev` remplace ce comportement par une file bornee de
+huit cEMI par session et un stop-and-wait : un seul paquet attend son ACK, avec
+le meme numero et le meme contenu pour deux repetitions au plus, timeout a
+1 000 ms et compteurs distincts de file pleine, repetition, timeout, ACK
+duplique et ACK invalide. Le socket reste exclusivement gere par la tache UDP ;
+l'UART2 reste exclusivement gere par la tache NCN5130. Tests hors ligne
+`tools/test_tunnel_tx_flow.py`, decouverte et routeur bidirectionnel : OK.
+Compilation : RAM statique 68 656 / 327 680 octets ; flash
+1 058 813 / 1 835 008 octets. Cette preparation n'est pas encore deployee.
