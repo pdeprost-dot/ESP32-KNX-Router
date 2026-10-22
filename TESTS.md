@@ -494,3 +494,16 @@ est resté passif, file vide, sans émission TP ni tunnel.
 - journal UART partiel (785 entrées écrasées) : compteurs fiables, chronologie
   par paquet et recherche exhaustive de doublons non démontrées ;
 - routage multicast resté désactivé et `ROUTING_ARMED=0`.
+
+## Découverte et reprise OTA 0.10.2
+
+- référence pré-OTA : 180 échantillons sur 1 790 s, aucune perte de session ni
+  erreur HTTP/UART/UDP ; détails dans `NODERED_TEST.md` ;
+- SEARCH unicast corrigé et validé : réponse 76 octets, endpoint
+  `192.0.2.156:3671`, IA `1.1.253`, familles Core/DM/Tunnelling ;
+- OTA réussie, Wi-Fi et pages Web revenus ;
+- profil Node-RED non persistant : serveur passif après boot ; tentative client
+  automatique observée et refusée `0x27` ;
+- après réactivation manuelle, reconnexion automatique Node-RED sur canal 1 en
+  `15.15.22`, sans requête ni rejeu applicatif au CONNECT ;
+- routage multicast resté désactivé, ESP_BASE inchangé.

@@ -179,3 +179,32 @@ normal a ajoute deux requetes toutes deux confirmees et vingt indications. Le
 heap libre echantillonne varie jusqu'a 161 296 octets et le minimum historique
 baisse de 2 280 octets sous les consultations periodiques ; cette seule fenetre
 ne prouve pas une fuite, mais constitue la reference a comparer apres OTA.
+
+### OTA et reprise 0.10.2
+
+La derniere version connue du runtime HPSERVER est `4.0.8`. Les ressources
+publiques de l'editeur prouvent une interface de generation 4.x, mais n'exposent
+pas la version exacte ; `/settings` reste protege par authentification. `4.0.8`
+est donc conserve comme information connue, pas comme mesure distante.
+
+OTA 0.10.2 reussie. Apres redemarrage :
+
+- retour automatique sur `example-wifi`, IP `192.0.2.156`, RSSI initial -42 dBm ;
+- `/`, `/knx`, `/knx-config`, `/ota` et `/api/status` en HTTP 200 ;
+- `ROUTING_ARMED=0`, routage multicast inactif ;
+- serveur tunnel revenu **desactive par defaut**, NCN5130 en Busmon : le profil
+  Node-RED n'est pas persistant dans cette version ;
+- Node-RED a detecte la perte et tente automatiquement un nouveau CONNECT depuis
+  `192.0.2.200:51879`, refuse `0x27` pendant que le serveur etait passif ;
+- apres confirmation manuelle du N146 debranche puis activation manuelle du
+  profil, Node-RED s'est reconnecte sans modification de flow depuis
+  `192.0.2.200:54888`, canal 1, adresse `15.15.22`, statut `0x00` ;
+- juste apres reconnexion : 0 requete applicative, 0 emission TP et 0 indication.
+  Aucun ancien telegramme n'a ete rejoue par l'ESP32 ou par le flow observe.
+
+La decouverte unicast reelle valide SEARCH (76 octets) et DESCRIPTION
+(68 octets) : endpoint `192.0.2.156:3671`, IA `1.1.253`, nom
+`ESP32 KNX Tunnel`, DIB complets et familles Core/Device Management/Tunnelling.
+Routing n'est pas annonce. La distribution d'une requete multicast par le LAN
+reste une question de transport distincte et n'est pas deduite de cet essai
+unicast.
