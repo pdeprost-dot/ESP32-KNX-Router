@@ -523,3 +523,4 @@ est resté passif, file vide, sans émission TP ni tunnel.
 - reprise Node-RED automatique après réactivation manuelle du serveur : canal 1,
   `15.15.22`, 5/5 TP confirmés, 9/9 indications acquittées, aucune erreur ACK,
   répétition, expiration ou saturation ; SEARCH/DESCRIPTION toujours valides.
+- état final : tunnel et gestion désactivés, canaux libres, Busmon passif.

@@ -248,3 +248,5 @@ depuis `192.0.2.200:54328`, canal 1, adresse `15.15.22`. Au premier bilan :
 file vide et aucune emission en attente. Ces cinq requetes sont du trafic de
 reconnexion du flow Node-RED ; leur nature applicative n'a pas ete deduite des
 seuls compteurs. SEARCH 76 octets et DESCRIPTION 68 octets restent valides.
+En fin d'essai, tunnel et gestion ont ete desactives : aucun canal occupe et
+NCN5130 confirme en Bus monitor passif. Le N146 peut etre reconnecte.
