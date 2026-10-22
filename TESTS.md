@@ -524,3 +524,18 @@ est resté passif, file vide, sans émission TP ni tunnel.
   `15.15.22`, 5/5 TP confirmés, 9/9 indications acquittées, aucune erreur ACK,
   répétition, expiration ou saturation ; SEARCH/DESCRIPTION toujours valides.
 - état final : tunnel et gestion désactivés, canaux libres, Busmon passif.
+
+## Persistance Node-RED 0.10.3
+
+- profil `15.15.22` stocké en NVS et restauré automatiquement après le passage
+  initial par le diagnostic NCN5130/Busmon ;
+- redémarrage réel validé : serveur revenu sans action Web, puis reconnexion
+  automatique Node-RED sur canal 1 ;
+- collecte : 180/180 relevés valides sur 1 790 s, interruptions OTA séparées aux
+  transitions 180-190 s et 380-390 s ;
+- dernier segment de 1 400 s : 1 requête TP confirmée, 7 indications acquittées,
+  aucune erreur UDP/UART/séquence/ACK ni confirmation absente ;
+- heap 158 988..162 092 octets, marge Web minimale 1 724 octets, RSSI -56..-51
+  dBm ;
+- état final après OTA de libellé hors campagne : profil actif et persistant,
+  canal 1, `15.15.22`, file vide, `ROUTING_ARMED=0`.

@@ -250,3 +250,34 @@ reconnexion du flow Node-RED ; leur nature applicative n'a pas ete deduite des
 seuls compteurs. SEARCH 76 octets et DESCRIPTION 68 octets restent valides.
 En fin d'essai, tunnel et gestion ont ete desactives : aucun canal occupe et
 NCN5130 confirme en Bus monitor passif. Le N146 peut etre reconnecte.
+
+## Profil Node-RED persistant et collecte de 30 minutes
+
+Le N146 restant deconnecte d'Ethernet, le profil Node-RED `15.15.22` est
+desormais enregistre explicitement dans la NVS de l'application. Au demarrage,
+le firmware effectue d'abord le diagnostic NCN5130 et atteint Busmon, puis
+restaure le mode normal et le serveur tunnel. Ce choix n'active pas le routage
+multicast : `ROUTING_ARMED=0` reste compile et affiche `DESACTIVE`.
+
+La capture bornee `captures/node-red-persistent-30min.jsonl` contient 180
+echantillons valides sur 1 790 s, sans echec HTTP. Elle est conservee localement
+et ignoree par Git. Les compteurs ont ete analyses par segment d'uptime :
+
+| Segment | Fenetre | Etat et trafic |
+|---|---:|---|
+| Avant OTA persistante | 0-180 s | canal 2 actif ; 1 nouvelle requete TP, confirmee ; 1 indication acquittee |
+| Apres OTA, avant redemarrage de preuve | 190-380 s | serveur reactive et choix ecrit en NVS ; reconnexion canal 1 a 270 s |
+| Apres redemarrage de preuve | 390-1 790 s | profil restaure sans action Web ; reconnexion canal 1 a 480 s ; 1 requete TP confirmee et 7 indications acquittees |
+
+Les intervalles 180-190 s et 380-390 s encadrent les deux interruptions OTA ;
+aucune mesure ne les a confondues avec une baisse durable de disponibilite. Sur
+le dernier segment : heap libre 158 988..162 092 octets, minimum historique
+144 592..159 304, RSSI -56..-51 dBm, aucune erreur UDP/UART/sequence/ACK,
+aucune confirmation TP negative ou absente. La marge Web minimale observee est
+1 724 octets. Les requetes normales relevees proviennent du client Node-RED ;
+aucune commande de test n'a ete generee par les outils de collecte.
+
+Une OTA finale, hors de cette fenetre de 30 minutes, a uniquement aligne le
+libelle Web. Etat final verifie : `ACTIF - RESTAURATION AUTOMATIQUE`, canal 1,
+`15.15.22`, endpoint `192.0.2.200:54817`, files vides, aucun timeout, aucune
+repetition et `ROUTING_ARMED=0`.
