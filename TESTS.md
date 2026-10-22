@@ -516,7 +516,10 @@ est resté passif, file vide, sans émission TP ni tunnel.
 - aucune saturation NCN5130, aucune erreur UART, marges de pile préservées ;
 - anomalie établie : le serveur envoyait plusieurs indications simultanées et
   comparait les ACK uniquement au dernier numéro émis (35 faux `ackErr` ETS) ;
-- correction `0.10.3-dev` compilée, non déployée : file TX bornée par session,
+- correction `0.10.3-dev` déployée : file TX bornée par session,
   stop-and-wait, deux répétitions maximum, timeout et compteurs séparés ;
 - `tools/test_tunnel_tx_flow.py`, tests découverte et routeur : OK ;
 - RAM 68 656 / 327 680 octets, flash 1 058 813 / 1 835 008 octets.
+- reprise Node-RED automatique après réactivation manuelle du serveur : canal 1,
+  `15.15.22`, 5/5 TP confirmés, 9/9 indications acquittées, aucune erreur ACK,
+  répétition, expiration ou saturation ; SEARCH/DESCRIPTION toujours valides.

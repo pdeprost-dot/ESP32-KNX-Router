@@ -237,4 +237,14 @@ duplique et ACK invalide. Le socket reste exclusivement gere par la tache UDP ;
 l'UART2 reste exclusivement gere par la tache NCN5130. Tests hors ligne
 `tools/test_tunnel_tx_flow.py`, decouverte et routeur bidirectionnel : OK.
 Compilation : RAM statique 68 656 / 327 680 octets ; flash
-1 058 813 / 1 835 008 octets. Cette preparation n'est pas encore deployee.
+1 058 813 / 1 835 008 octets.
+
+OTA `0.10.3-dev` reussie. Wi-Fi, `/`, `/api/status` et `/knx` sont revenus ; le
+serveur a demarre passif comme prevu. Apres confirmation manuelle du N146 reste
+debranche et reactivation du profil, Node-RED s'est reconnecte automatiquement
+depuis `192.0.2.200:54328`, canal 1, adresse `15.15.22`. Au premier bilan :
+6 requetes, 5 emissions TP toutes confirmees, 9 indications toutes acquittees,
+0 erreur de sequence/ACK, 0 repetition, timeout, file pleine ou ACK duplique ;
+file vide et aucune emission en attente. Ces cinq requetes sont du trafic de
+reconnexion du flow Node-RED ; leur nature applicative n'a pas ete deduite des
+seuls compteurs. SEARCH 76 octets et DESCRIPTION 68 octets restent valides.
