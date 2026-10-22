@@ -479,5 +479,18 @@ est resté passif, file vide, sans émission TP ni tunnel.
 - OTA 0.10.1 validée : retour sur `example-wifi`, `192.0.2.156`, RSSI -41 dBm,
   pages `/api/status` et `/knx` disponibles, Busmon passif, tunnel arrêté,
   profil ETS par défaut et `ROUTING_ARMED=0` ;
-- essai réel Node-RED : en attente de la version du module, de l'IP du PC et de
-  la confirmation de déconnexion Ethernet du N146.
+- préparation achevée avant l'essai réel documenté ci-dessous.
+
+## Validation Node-RED 3.3.9
+
+- instance `192.0.2.200:1880`, tunnel UDP connecté depuis le port 58744,
+  canal 1 et adresse tunnel `15.15.22` annoncée dans la CRD ;
+- 4 requêtes, 4 émissions TP confirmées, 0 échec, 14 indications remontées,
+  12 ACK et aucune perte UDP TX ;
+- l'utilisateur confirme l'effet physique des commandes lampe ON/OFF ; cet
+  essai réel a dépassé le scénario borné à un unique OFF ;
+- aucune erreur UART ; heap libre 164 488 octets, marges Web/UDP/NCN5130
+  1 868/2 784/4 376 octets ;
+- journal UART partiel (785 entrées écrasées) : compteurs fiables, chronologie
+  par paquet et recherche exhaustive de doublons non démontrées ;
+- routage multicast resté désactivé et `ROUTING_ARMED=0`.
