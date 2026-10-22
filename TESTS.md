@@ -450,3 +450,16 @@ indications N146 capturées pendant une première action KNX. Environ huit minut
 plus tard et sans nouvelle adhésion, il en a reçu 2 sur 6. La réception tient
 donc dans le temps, mais les rafales restent partiellement perdues. Le prototype
 est resté passif, file vide, sans émission TP ni tunnel.
+# 2026-10-22 - moteur bidirectionnel passif 0.10.0
+
+- `tools/test_bidirectional_router.py` : conversions indépendantes dans les deux
+  sens, sources et APDU conservés, compteurs décrémentés, FCS, compteur nul,
+  file bornée, expiration, échos à consommation unique et arbitre UART ;
+- tests historiques IP→TP, tunnel ETS, envoi NCN5130 et parseur TP : OK ;
+- compilation PlatformIO : RAM statique 66 456 / 327 680 octets, firmware
+  1 054 521 / 1 835 008 octets ;
+- `ROUTING_ARMED=0`, directions persistantes désactivées par défaut, tunnels
+  désactivés au démarrage : aucune validation réelle de routage effectuée ;
+- ESP_BASE 2.4.1 inchangé.
+- OTA 0.10.0 validée : retour Wi-Fi et pages Web, paramètres version 1 migrés,
+  Busmon passif, deux sens désactivés, tunnel arrêté, file TP vide.

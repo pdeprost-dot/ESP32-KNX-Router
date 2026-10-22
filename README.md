@@ -1,6 +1,7 @@
 # Prototype ESP32 KNX TP ↔ KNXnet/IP sur Wi-Fi
 
-> Version 0.9.5 : deux tunnels ETS6 unicast (`1.1.254`, `1.1.252`) et une
+> Version 0.10.0 : moteur bidirectionnel TP↔IP consolidé mais verrouillé passif,
+> deux tunnels ETS6 unicast (`1.1.254`, `1.1.252`) et une
 > connexion de gestion distincte, désactivés par défaut. Procédure et limites :
 > [ETS6.md](ETS6.md).
 
@@ -16,6 +17,8 @@ L'audit 0.5.4 corrige l'index `U_L_DataEnd`, retire `U_SetAddress` car il active
 - ESP_BASE 2.4.1, dépôt local au commit `f4d8a4790b29aa93bb87af09ac57d9b76c000d7c` (tag `esp-base-2.4.1`) ;
 - pile `thelsing/knx` épinglée au commit `980c047ad7fc5e27bf2fae95e48acde5d5e0b4fd` ;
 - `ROUTING_ARMED=0` vérifié par `static_assert` ;
+- moteur TP↔IP, filtres persistants, files bornées et arbitre tunnel/routage
+  décrits dans [ROUTER_ENGINE.md](ROUTER_ENGINE.md), tous inactifs au démarrage ;
 - aucun appel à `knx.start()` ou `knx.loop()` : seule la réception multicast
   passive est active ; routage, tunnels et émissions restent inactifs.
 
