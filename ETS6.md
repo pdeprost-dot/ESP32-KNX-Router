@@ -127,3 +127,46 @@ cette capture n'en a pas forcé l'utilisation : ETS a fermé le premier tunnel
 avant chaque connexion suivante, et l'adresse allouée est donc restée
 `1.1.254`. Après l'essai, les deux tunnels et la gestion ont été libérés, le
 serveur désactivé et le NCN5130 restauré en Busmon passif.
+
+## Première programmation réelle de 1.1.7
+
+Le projet ETS contenant la configuration courante et l'application produit a
+été sauvegardé avant l'essai. L'appareil autorisé était le relais `1.1.7`; la
+sortie D, inutilisée et sans adresse de groupe, a servi à modifier de façon
+réversible le mode de remontée de son état. Le Siemens N146/02 est resté
+connecté et disponible comme chemin de restauration. L'adresse individuelle
+n'a pas été modifiée.
+
+ETS a finalement exécuté **Télécharger (Tout)**, malgré l'intention initiale de
+limiter l'opération aux paramètres. L'opération affichée par ETS a duré de
+13:25:11 à 13:26:34 (83 s). La partie de programmation visible sur le réseau,
+canal 7 et adresse tunnel `1.1.254`, a duré environ 28 s :
+
+- 160 requêtes KNXnet/IP uniques ;
+- 160 émissions TP et 160 confirmations positives NCN5130 ;
+- 316 indications cEMI remontées et acquittées ;
+- aucun doublon, timeout, statut ACK non nul ou saturation de file ;
+- une erreur de parité UART isolée, sans trame invalide ni resynchronisation.
+
+La valeur initiale `transmit after change` a ensuite été restaurée. ETS a
+affiché une opération terminée de 13:30:44 à 13:31:19 (35 s). La capture
+`ets6_restore_1-1-7_094.pcapng` montre :
+
+- canal 9, adresse tunnel `1.1.254` ;
+- 142 datagrammes de requête, dont 141 requêtes uniques et une retransmission
+  exacte de la séquence 4 après environ 1,015 s ;
+- 141 émissions TP, toutes confirmées : le doublon a été acquitté sans être
+  réémis sur TP ;
+- 279 indications cEMI remontées et acquittées ;
+- aucun statut ACK non nul, échec TP ou débordement de file ;
+- deux resynchronisations du parseur, sans trame invalide supplémentaire ;
+- aucune nouvelle erreur de parité après l'unique erreur de la première
+  programmation.
+
+Sur l'ensemble de la campagne, le heap minimal est resté à 135224 octets. Les
+marges minimales de pile sont restées à 1932 octets pour Web/loop, 2824 octets
+pour UDP et 4512 octets pour NCN5130. La durée protocolaire maximale mesurée
+dans la tâche UDP a été 1970 µs ; aucune erreur, reprise ou perte d'envoi UDP
+n'a été comptée. L'utilisateur a confirmé le résultat de la restauration et le
+fonctionnement attendu. Enfin, les sessions ont été libérées, le tunnel
+désactivé et le NCN5130 remis en Busmon passif avec `ROUTING_ARMED=0`.
