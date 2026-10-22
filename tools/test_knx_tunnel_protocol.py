@@ -27,6 +27,15 @@ response = (
 assert len(response) == 20
 assert response[-2:] == bytes.fromhex("11 FE")  # 1.1.254
 
+second_response = (
+    header(0x0206, 20)
+    + bytes([3, 0])
+    + hpai("192.0.2.156", 3671)
+    + bytes([4, 4, 0x11, 0xFC])
+)
+assert second_response[-2:] == bytes.fromhex("11 FC")  # 1.1.252
+assert second_response[6] != response[6]
+
 # ETS6 opens this separate two-byte CRI after its tunneling connection.
 management_connect = (
     header(0x0205, 24)
@@ -75,4 +84,4 @@ tunneling_request = header(0x0420, 10 + len(cemi)) + bytes([4, 1, 0, 0]) + cemi
 assert tunneling_request[10:] == cemi
 assert len(tunneling_request) == 10 + len(cemi)
 
-print("OK: distinct channels, ETS state/disconnect offsets, ACKs, status 0x24 and cEMI")
+print("OK: two tunnel addresses, distinct management channel, ETS offsets, ACKs and cEMI")

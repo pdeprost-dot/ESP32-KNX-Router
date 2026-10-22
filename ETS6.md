@@ -1,4 +1,4 @@
-# Premier tunnel ETS6 unicast (firmware 0.9.2)
+# Tunnels ETS6 unicast (firmware 0.9.4)
 
 ## Capacités vérifiées
 
@@ -8,12 +8,13 @@ transport cEMI des télégrammes individuels. Sa configuration permet quatre
 tunnels, mais elle ne peut pas être démarrée telle quelle dans cette
 application : elle créerait un second propriétaire du socket UDP et d'UART2.
 
-Le prototype 0.9.2 réutilise donc exclusivement les deux tâches propriétaires
-existantes et expose un serveur borné à **une session tunnel et une session de
-gestion distinctes** :
+Le prototype 0.9.4 réutilise donc exclusivement les deux tâches propriétaires
+existantes et expose un serveur borné à **deux sessions tunnel et une session
+de gestion distincte** :
 
 - interface physique du prototype : `1.1.253` ;
-- adresse individuelle réservée au client tunnel : `1.1.254` ;
+- adresses individuelles réservées aux clients tunnel : `1.1.254` et
+  `1.1.252` ;
 - point de terminaison : `192.0.2.156:3671` en UDP unicast ;
 - couche de tunnel : link layer (`0x02`) ;
 - routage multicast : désactivé par `ROUTING_ARMED=0` ;
@@ -22,7 +23,7 @@ gestion distinctes** :
 La tâche UDP est seule propriétaire de `WiFiUDP`; elle traite les acquittements
 de tunnel et transmet les réponses par une file bornée. La tâche NCN5130 est
 seule propriétaire d'UART2. En mode normal elle n'acquitte sur TP que les
-télégrammes individuels destinés à `1.1.254`; elle n'applique aucun auto-ACK
+télégrammes individuels destinés à `1.1.254` ou `1.1.252`; elle n'applique aucun auto-ACK
 général aux télégrammes tiers.
 
 ## Premier essai ETS6
@@ -42,7 +43,7 @@ le prototype ne fait aucun routage multicast.
 
 ## Limites de cette première étape
 
-- une seule session et délai d'inactivité de 120 secondes ;
+- deux sessions tunnel au maximum et délai d'inactivité de 120 secondes ;
 - pas de KNX IP Secure ;
 - pas de téléchargement ETS validé ;
 - gestion individuelle transparente destinée d'abord à une lecture simple ;
@@ -90,3 +91,39 @@ tunnel depuis `/knx` rend l'emplacement disponible.
 Après la validation, le serveur a été désactivé depuis `/knx-diagnostic` et le
 NCN5130 remis en Busmon passif. Aucun téléchargement ETS ni télégramme
 applicatif TP n'a été émis.
+
+## Validation 0.9.4 sous charge Web
+
+ETS6 conservait parfois une connexion de travail puis demandait un nouveau
+tunnel pour une opération. La limite précédente à un tunnel provoquait alors
+`E_NO_MORE_CONNECTIONS` (`0x24`) alors que la première session était encore
+valide. Le second emplacement utilise l'adresse libre confirmée `1.1.252` ; il
+ne partage ni canal, ni séquences, ni état avec le premier emplacement
+`1.1.254`. Une seule émission UART TP reste toutefois autorisée à la fois.
+
+La capture `ets6_read_webload_094.pcapng` contient deux lectures successives de
+l'appareil `1.1.7` pendant des consultations répétées de `/knx` :
+
+- première lecture : tunnel canal 1, gestion canal 2 ;
+- seconde lecture : tunnel canal 3, gestion canal 4 ;
+- les canaux 1 et 3 se sont succédé et n'ont pas coexisté ; chaque
+  `DISCONNECT` a libéré sa session avant la suivante ;
+- 100 `L_Data.req` ETS uniques, 100 émissions TP et 100 confirmations NCN5130 ;
+- 196 remontées cEMI vers ETS, toutes acquittées ;
+- aucun doublon `TUNNELING_REQUEST`, aucune réémission TP et aucun statut ACK
+  non nul ;
+- ACK ESP32 des requêtes ETS : moyenne 23,019 ms, maximum 264,644 ms ;
+- ACK ETS des indications ESP32 : moyenne 0,309 ms, maximum 1,586 ms ;
+- tâche UDP : 314 messages protocolaires, traitement maximal 863 µs,
+  314 envois réussis, aucune erreur, reprise ou perte ;
+- files UDP et NCN5130 : aucune saturation ; erreurs UART : 0/0/0 ;
+- `/knx` a bloqué la boucle Web jusqu'à 16,073 s, sans bloquer les propriétaires
+  UDP et UART ; mutex de l'instantané maintenus 57 µs au total, 30 µs maximum ;
+- heap minimal 135224 octets, marges de pile : Web 1932 octets, UDP 2824
+  octets, NCN5130 4512 octets.
+
+Le second emplacement est ainsi disponible pour une coexistence réelle, mais
+cette capture n'en a pas forcé l'utilisation : ETS a fermé le premier tunnel
+avant chaque connexion suivante, et l'adresse allouée est donc restée
+`1.1.254`. Après l'essai, les deux tunnels et la gestion ont été libérés, le
+serveur désactivé et le NCN5130 restauré en Busmon passif.
