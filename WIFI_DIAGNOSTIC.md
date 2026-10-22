@@ -1,5 +1,52 @@
 # Diagnostic et reprise Wi-Fi
 
+## Association corrigée sur l'AP proche (22 octobre 2026)
+
+Après correction de l'association puis redémarrage OTA à firmware identique
+`0.9.5`, l'ESP32 est revenu sur `192.0.2.156` avec le BSSID
+`02:00:00:00:00:01`, canal 1. Ce BSSID partage l'identité matérielle de l'AP
+UniFi `02:00:00:00:00:01` et correspond à sa variante radio ; aucune MAC n'a
+été forcée. Avant les mesures : RSSI -48 dBm (minimum -52 dBm), une
+association, un DHCP, aucune déconnexion et `WIFI_PS_NONE` confirmé par
+`esp_wifi_get_ps()`.
+
+La première invocation du banc n'a transmis aucun paquet en raison d'une erreur
+de liaison des paramètres PowerShell ; les compteurs étaient restés à zéro et
+ce passage n'est pas compté. La campagne valide suivante utilise le même script,
+l'adresse locale `192.0.2.123`, l'interface multicast explicite
+`192.0.2.123`, TTL 1 et `224.0.23.12:3671`.
+
+| Série | Intervalle | `/knx` | Commit `61bf4f3` | AP corrigé | Séquences absentes à l'ESP32 |
+|---:|---:|:---:|---:|---:|---|
+| 1 | 100 ms | non | 17/20 | 20/20 | aucune |
+| 2 | 10 ms | non | 8/20 | 17/20 | 12, 13, 14 |
+| 3 | 2 ms | non | 10/20 | 19/20 | 3 |
+| 4 | 100 ms | oui | 14/20 | 19/20 | 2 |
+| 5 | 10 ms | oui | 14/20 | 18/20 | 6, 7 |
+| 6 | 2 ms | oui | 8/20 | 6/20 | 6 à 19 |
+
+La capture `udp_multicast_bursts_correct_ap_095.pcapng` contient les 120/120
+datagrammes KXDG émis par le PC. Pour chaque série, le compteur socket et le
+compteur applicatif sont identiques ; aucun doublon n'est visible dans les
+bitmaps. La file UDP n'a perdu aucun événement, sans erreur de lecture ni
+datagramme surdimensionné. L'intervalle maximal de desserte de la tâche UDP a
+atteint 53 883 us, avec au plus huit datagrammes vidés par passage. La marge de
+pile UDP est restée à 3 796 octets. Le maximum observé de `ESP_BASE.loop()` est
+383 486 us.
+
+Le meilleur RSSI et la bonne association sont corrélés à une nette
+amélioration de cinq séries sur six par rapport à `61bf4f3`, mais ne suffisent
+pas à garantir 20/20, particulièrement à 2 ms pendant le chargement Web. Les
+120 paquets quittent bien le PC, tandis que les paquets absents ne parviennent
+pas au socket ESP32. Ces preuves ne permettent pas de localiser plus finement
+la perte entre l'émission Wi-Fi du PC, l'AP et la pile réseau ESP32. La campagne
+n'étant pas parfaite, la répétition conditionnelle après 15 minutes n'a pas été
+lancée.
+
+Le prototype est resté en Busmon passif, tunnels désactivés,
+`ROUTING_ARMED=0`, sans émission TP, réinscription multicast forcée ni
+modification d'ESP_BASE ou d'UniFi.
+
 ## Fonctionnement vérifié
 
 ESP_BASE 2.4.1 désactive l'auto-reconnexion du SDK et utilise sa propre machine d'état :
