@@ -155,3 +155,27 @@ timeout. Le profil prepare conserve Node-RED en `15.15.22`, rend le second
 canal `1.1.252` disponible pour ETS et separe toujours la connexion de gestion.
 L'ACK individuel NCN5130 est decide a partir des adresses des sessions
 reellement connectees.
+
+### Reference 0.10.1 avant OTA
+
+Collecte `captures/node-red-baseline-0.10.1.jsonl` effectuee sur 1 790,001 s
+(29 min 50 s entre premier et dernier echantillon, campagne murale de 30 min),
+180 echantillons et 0 echec HTTP :
+
+| Mesure | Debut | Fin |
+|---|---:|---:|
+| Heap libre API | 164 460 | 161 332 octets |
+| Minimum historique | 148 208 | 145 928 octets |
+| Plus grand bloc interne | 106 484 | 102 388 octets |
+| Marge pile Web | 1 804 | 1 788 octets |
+| Requetes / TP confirmes / echecs | 7 / 7 / 0 | 9 / 9 / 0 |
+| ACK / indications tunnel | 18 / 20 | 34 / 40 |
+| UDP TX succes / erreurs / reprises / pertes | 66 / 0 / 0 / 0 | 148 / 0 / 0 / 0 |
+| UART TX / RX | 152 / 939 | 206 / 1 125 octets |
+
+La session est restee sur le canal 1, sans DISCONNECT ni expiration. RSSI de
+-51 a -45 dBm ; aucune erreur UART de parite, trame ou debordement. Le trafic
+normal a ajoute deux requetes toutes deux confirmees et vingt indications. Le
+heap libre echantillonne varie jusqu'a 161 296 octets et le minimum historique
+baisse de 2 280 octets sous les consultations periodiques ; cette seule fenetre
+ne prouve pas une fuite, mais constitue la reference a comparer apres OTA.
