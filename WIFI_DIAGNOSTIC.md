@@ -1,5 +1,51 @@
 # Diagnostic et reprise Wi-Fi
 
+## Comparaison unicast / multicast sur le bon AP (22 octobre 2026)
+
+Le banc KXDG a transmis les mêmes six séries vers l'adresse unicast
+`192.0.2.156:3671`, puis vers le groupe multicast `224.0.23.12:3671`.
+Chaque transport a reçu de nouveaux compteurs avant ses six séries. Le PC est
+resté lié à `192.0.2.123`; pour le multicast, cette adresse est aussi
+l'interface sortante explicite et le TTL vaut 1.
+
+| Intervalle | `/knx` | Unicast socket/application | Multicast socket/application |
+|---:|:---:|---:|---:|
+| 100 ms | non | 20/20 | 20/20 |
+| 10 ms | non | 20/20 | 18/20 |
+| 2 ms | non | 20/20 | 6/20 |
+| 100 ms | oui | 20/20 | 20/20 |
+| 10 ms | oui | 20/20 | 12/20 |
+| 2 ms | oui | 10/20 | 12/20 |
+
+La capture `udp_unicast_multicast_correct_ap_095.pcapng` contient les 240/240
+datagrammes émis : 20 paquets pour chacune des six séries et chacun des deux
+transports, sans numéro manquant ni doublon côté PC. Côté ESP32, aucun
+doublon n'a été reçu. Les séquences absentes sont :
+
+- unicast, 2 ms avec Web : 8 à 17 ;
+- multicast, 10 ms sans Web : 18 et 19 ;
+- multicast, 2 ms sans Web : 6 à 19 ;
+- multicast, 10 ms avec Web : 6 à 9 et 16 à 19 ;
+- multicast, 2 ms avec Web : 9 à 16.
+
+Pour les deux transports, le nombre traité est exactement le nombre reçu par
+le socket. La file UDP n'a perdu aucun événement et aucune erreur de lecture ou
+trame surdimensionnée n'est relevée. Le maximum de desserte UDP mesuré est
+117 267 us en unicast (11 datagrammes vidés par passage) et 65 275 us en
+multicast (12 par passage). `ESP_BASE.loop()` a atteint respectivement 402 234
+et 414 412 us, tandis que la marge de pile UDP est restée à 3 796 octets.
+
+Le BSSID est resté `02:00:00:00:00:01`, canal 1, avec un RSSI de -48 dBm,
+`WIFI_PS_NONE`, une association, un DHCP et aucune déconnexion. Busmon est
+resté passif, les tunnels et `ROUTING_ARMED` désactivés, sans émission TP.
+
+L'unicast n'est donc pas intégral dans toutes les conditions : il perd pendant
+la rafale la plus rapide sous charge Web. On ne peut pas attribuer l'ensemble
+du phénomène au multicast seul. Le multicast présente toutefois une perte
+supplémentaire nette à 10 et 2 ms, y compris sans Web. Un essai contrôlé de
+`Multicast Enhancement / Multicast to Unicast` pourrait maintenant isoler
+cette contribution, mais aucun réglage UniFi n'a été modifié automatiquement.
+
 ## Association corrigée sur l'AP proche (22 octobre 2026)
 
 Après correction de l'association puis redémarrage OTA à firmware identique

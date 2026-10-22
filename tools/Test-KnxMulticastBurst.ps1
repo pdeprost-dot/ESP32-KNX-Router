@@ -1,12 +1,15 @@
 param(
     [Parameter(Mandatory = $true)][ValidateRange(1, 6)][int]$Series,
     [Parameter(Mandatory = $true)][ValidateSet(100, 10, 2)][int]$IntervalMs,
+    [ValidateSet('Multicast', 'Unicast')][string]$Transport = 'Multicast',
     [switch]$RefreshKnx
 )
 
 $localAddress = [Net.IPAddress]::Parse('192.0.2.123')
 $groupAddress = [Net.IPAddress]::Parse('224.0.23.12')
-$remote = [Net.IPEndPoint]::new($groupAddress, 3671)
+$unicastAddress = [Net.IPAddress]::Parse('192.0.2.156')
+$remoteAddress = if ($Transport -eq 'Unicast') { $unicastAddress } else { $groupAddress }
+$remote = [Net.IPEndPoint]::new($remoteAddress, 3671)
 $udp = [Net.Sockets.UdpClient]::new([Net.Sockets.AddressFamily]::InterNetwork)
 $udp.Client.Bind([Net.IPEndPoint]::new($localAddress, 0))
 $udp.Client.SetSocketOption(
@@ -54,6 +57,8 @@ if ($null -ne $refreshProcess) {
     series = $Series
     interval_ms = $IntervalMs
     web_refresh = [bool]$RefreshKnx
+    transport = $Transport.ToLowerInvariant()
+    destination = $remoteAddress.ToString()
     local_address = $localAddress.ToString()
     local_port = $localPort
     multicast_interface = $localAddress.ToString()
