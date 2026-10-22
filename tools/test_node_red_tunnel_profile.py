@@ -32,8 +32,11 @@ source = (Path(__file__).parents[1] / "src" / "main.cpp").read_text(encoding="ut
 assert "kNodeRedTunnelAddress=0xFF16" in source
 assert "nodeRedTunnelMode=false" in source
 assert "node_red_tunnel_enable" in source
-assert "nodeRedTunnelMode||management.connected" in source
+assert "else if(!tunnels[1].connected)freeSlot=&tunnels[1]" in source
+assert "type==3&&management.connected" in source
 assert "tunnels[0].address=kNodeRedTunnelAddress" in source
+assert "tunnels[1].address=kTunnelAddresses[1]" in source
+assert "destination==tunnels[0].address" in source
 assert "ROUTING_ARMED=0" in source
 
-print("OK: KNX Ultimate TunnelUDP profile, IA 15.15.22, one session and OFF vector")
+print("OK: KNX Ultimate IA 15.15.22, ETS IA 1.1.252, management separate, OFF vector")

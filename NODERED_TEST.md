@@ -114,3 +114,44 @@ choix de le conserver ou de restaurer le N146 doit etre explicite. Pour le
 retour arriere : remettre le profil en Busmon, restaurer l'export sauvegarde
 (`192.0.2.60`, protocole `Auto`) par deploiement limite, puis reconnecter
 l'Ethernet du N146.
+
+## Audit approfondi et preparation 0.10.2
+
+L'utilisateur choisit de conserver Node-RED actif et le N146 debranche. La
+version `3.3.9` est celle de `node-red-contrib-knx-ultimate`, pas celle du
+runtime Node-RED. L'API d'administration de `192.0.2.200:1880` est protegee
+par authentification ; la version exacte du runtime reste a lire dans l'ecran
+**About** de cette instance.
+
+### Decouverte
+
+La sonde independante `tools/knx_ip_discovery_probe.py` a etabli sur 0.10.1 :
+
+- `SEARCH_REQUEST` unicast : aucune reponse ;
+- `DESCRIPTION_RESPONSE` : 68 octets conformes, IA `1.1.253`, nom
+  `ESP32 KNX Tunnel`, medium TP1, familles Core v1, Device Management v1 et
+  Tunnelling v1 ; Routing n'est pas annonce ;
+- l'entree `224.0.23.12:3671 / Multicast Address / 15.15.199` est ajoutee
+  explicitement par `nodes/utils/utils.js` du paquet npm officiel
+  `node-red-contrib-knx-ultimate@3.3.9`, apres les resultats de `discover()`.
+  Elle est donc synthetique et ne provient pas d'un `SEARCH_RESPONSE` ESP32.
+
+Le firmware 0.10.2 prepare une reponse SEARCH de 76 octets reutilisant les
+memes DIB que DESCRIPTION et un HPAI `192.0.2.156:3671`. Le test independant
+`tools/test_knx_ip_discovery.py` verifie longueurs, IA, nom et familles. Cette
+correction est compilee mais pas encore deployee afin de ne pas interrompre le
+tunnel Node-RED 0.10.1 sans preparation de reprise.
+
+### Compteurs et collecte
+
+`tools/collect_knx_runtime.py` produit sur le PC un JSONL borne avec trois
+rotations, sans ecriture dans la flash ESP32. Il releve `/api/status` et un
+instantane `/knx`, continue apres une interruption Wi-Fi et distingue les
+compteurs cumules du journal d'affichage ecrase.
+
+0.10.2 ajoute des compteurs cumules distincts pour doublons tunnel, erreurs de
+sequence, ACK errones et confirmations TP positives, negatives ou absentes par
+timeout. Le profil prepare conserve Node-RED en `15.15.22`, rend le second
+canal `1.1.252` disponible pour ETS et separe toujours la connexion de gestion.
+L'ACK individuel NCN5130 est decide a partir des adresses des sessions
+reellement connectees.
