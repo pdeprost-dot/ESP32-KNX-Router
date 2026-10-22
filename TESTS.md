@@ -463,3 +463,21 @@ est resté passif, file vide, sans émission TP ni tunnel.
 - ESP_BASE 2.4.1 inchangé.
 - OTA 0.10.0 validée : retour Wi-Fi et pages Web, paramètres version 1 migrés,
   Busmon passif, deux sens désactivés, tunnel arrêté, file TP vide.
+
+# 2026-10-22 - préparation Node-RED unicast 0.10.1
+
+- export KNX Ultimate original sauvegardé dans
+  `nodered/knx_config_original.json` ; adresse cliente `15.15.22` préservée ;
+- profil distinct limité à un tunnel, sans connexion de gestion concurrente ;
+- activation soumise à la confirmation de déconnexion Ethernet du N146 ;
+- démarrage et état préparé strictement passifs : `ROUTING_ARMED=0`, tunnel
+  arrêté, NCN5130 Busmon ;
+- `tools/test_node_red_tunnel_profile.py`, tests du routeur bidirectionnel et
+  tests tunnel historiques : OK ;
+- compilation PlatformIO : RAM statique 66 464 / 327 680 octets, firmware
+  1 055 289 / 1 835 008 octets ;
+- OTA 0.10.1 validée : retour sur `example-wifi`, `192.0.2.156`, RSSI -41 dBm,
+  pages `/api/status` et `/knx` disponibles, Busmon passif, tunnel arrêté,
+  profil ETS par défaut et `ROUTING_ARMED=0` ;
+- essai réel Node-RED : en attente de la version du module, de l'IP du PC et de
+  la confirmation de déconnexion Ethernet du N146.

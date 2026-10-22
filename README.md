@@ -1,9 +1,13 @@
 # Prototype ESP32 KNX TP ↔ KNXnet/IP sur Wi-Fi
 
-> Version 0.10.0 : moteur bidirectionnel TP↔IP consolidé mais verrouillé passif,
+> Version 0.10.1 : moteur bidirectionnel TP↔IP consolidé mais verrouillé passif,
 > deux tunnels ETS6 unicast (`1.1.254`, `1.1.252`) et une
 > connexion de gestion distincte, désactivés par défaut. Procédure et limites :
 > [ETS6.md](ETS6.md).
+
+Un profil unicast distinct, borné à une session et à l'adresse cliente
+`15.15.22`, prépare l'essai Node-RED KNX Ultimate sans modifier le verrou de
+routage. Il reste désactivé au démarrage : [NODERED_TEST.md](NODERED_TEST.md).
 
 Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1 à transceiver **NCN5130**. Le firmware actuellement flashé est une version de diagnostic et de configuration : le routage est verrouillé à la compilation et la pile KNXnet/IP n'est pas démarrée.
 
