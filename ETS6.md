@@ -1,4 +1,4 @@
-# Premier tunnel ETS6 unicast (firmware 0.9.0)
+# Premier tunnel ETS6 unicast (firmware 0.9.2)
 
 ## Capacités vérifiées
 
@@ -8,8 +8,9 @@ transport cEMI des télégrammes individuels. Sa configuration permet quatre
 tunnels, mais elle ne peut pas être démarrée telle quelle dans cette
 application : elle créerait un second propriétaire du socket UDP et d'UART2.
 
-Le prototype 0.9.0 réutilise donc exclusivement les deux tâches propriétaires
-existantes et expose un serveur borné à **une session** :
+Le prototype 0.9.2 réutilise donc exclusivement les deux tâches propriétaires
+existantes et expose un serveur borné à **une session tunnel et une session de
+gestion distinctes** :
 
 - interface physique du prototype : `1.1.253` ;
 - adresse individuelle réservée au client tunnel : `1.1.254` ;
@@ -48,10 +49,44 @@ le prototype ne fait aucun routage multicast.
 - aucune promesse de reprise/rollback de session après redémarrage ;
 - les files UDP/UART sont bornées et une saturation est comptabilisée ;
 - ce prototype n'est pas encore un routeur bidirectionnel complet.
-- le bouton **Test** d'ETS6 ouvre aussi une connexion de gestion de périphérique
-  (`0x03`) après le tunnel (`0x04`). La version 0.9.0 ne traite pas encore ce
-  second service : le tunnel initial réussit, puis ETS affiche à tort que les
-  connexions sont épuisées. Ne pas poursuivre vers le TP avant correction.
+- le bouton **Test** d'ETS6 ouvre une connexion tunnel (`0x04`) puis une
+  connexion de gestion de périphérique (`0x03`) courte de 24 octets. Elles ont
+  des identifiants de canal distincts et n'occupent pas le même emplacement ;
+- les `M_PropRead.req` observées pendant le test sont traitées par les objets de
+  propriété réels de la pile. Une fonction cEMI de gestion non implémentée est
+  refusée explicitement par `E_DATA_CONNECTION` (`0x26`) ;
+- `CONNECTIONSTATE` et `DISCONNECT` libèrent chaque type de session séparément.
+  Le statut `E_NO_MORE_CONNECTIONS` observé est `0x24` (et non `0x27`).
 
 Le test logiciel `tools/test_knx_tunnel_protocol.py` vérifie indépendamment les
-octets de CONNECT_RESPONSE (CRD `1.1.254`), TUNNELING_ACK et l'encapsulation cEMI.
+octets de CONNECT_RESPONSE, les canaux distincts, le statut `0x24`, ainsi que
+les offsets de canal de CONNECTIONSTATE/DISCONNECT issus de la capture ETS6.
+
+## Validation ETS6 du firmware 0.9.2
+
+Deux actions successives sur le bouton **Test** d'ETS6 ont retourné `Ok`.
+Les compteurs embarqués ont confirmé les échanges suivants :
+
+- 2 connexions `DEVICE_MGMT_CONNECTION` acceptées et 2 `DISCONNECT` reçus ;
+- 4 `M_PropRead.req`, 4 réponses acquittées et 0 fonction non implémentée ;
+- aucune expiration de connexion de gestion ;
+- un canal tunnel et un canal de gestion distincts lors de chaque test.
+
+La capture 0.9.1 avait montré que les réponses aux lectures étaient déjà
+correctes, mais que le canal de `CONNECTIONSTATE_REQUEST` et de
+`DISCONNECT_REQUEST` était lu à tort à l'octet 7. Ces services placent le canal
+à l'octet 6 et réservent l'octet 7. La correction 0.9.2 permet la libération
+effective du canal de gestion.
+
+ETS peut conserver le canal tunnel principal puis lancer d'autres demandes de
+connexion. Avec la limite volontaire d'une seule session tunnel, celles-ci
+reçoivent `E_NO_MORE_CONNECTIONS` (`0x24`). ETS peut alors afficher à la fois
+`Test : Ok` et une bannière « Il n'y a plus de connexions disponibles » : la
+bannière concerne la demande supplémentaire, pas les lectures de gestion qui
+viennent de réussir. Il ne faut pas augmenter le nombre de tunnels pour masquer
+ce comportement ; libérer/désélectionner la connexion ETS ou désactiver le
+tunnel depuis `/knx` rend l'emplacement disponible.
+
+Après la validation, le serveur a été désactivé depuis `/knx-diagnostic` et le
+NCN5130 remis en Busmon passif. Aucun téléchargement ETS ni télégramme
+applicatif TP n'a été émis.

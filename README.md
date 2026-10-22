@@ -1,7 +1,8 @@
 # Prototype ESP32 KNX TP ↔ KNXnet/IP sur Wi-Fi
 
-> Version 0.9.0 : premier serveur de tunneling ETS6 unicast, limité à une
-> session et désactivé par défaut. Procédure et limites : [ETS6.md](ETS6.md).
+> Version 0.9.2 : tunnel ETS6 unicast et connexion de gestion distincte,
+> chacun limité à une session et désactivé par défaut. Procédure et limites :
+> [ETS6.md](ETS6.md).
 
 Prototype prudent pour Wemos D1 mini ESP32 classique et NanoBCU v1.1.1 à transceiver **NCN5130**. Le firmware actuellement flashé est une version de diagnostic et de configuration : le routage est verrouillé à la compilation et la pile KNXnet/IP n'est pas démarrée.
 
