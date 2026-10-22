@@ -92,3 +92,33 @@ Captures :
 
 Le prototype est resté en Busmon passif, tunnels désactivés et
 `ROUTING_ARMED=0` pendant toute la mesure.
+
+## Nouvelle position plus proche de l'AP
+
+Une campagne strictement identique a été répétée après déplacement de l'ESP32
+plus près de l'AP, sans modifier UniFi ni réinscrire le socket multicast. Le
+BSSID est resté `02:00:00:00:00:01`, canal 4. Le RSSI mesuré était -78 dBm avant
+les rafales et -80 dBm après. `esp_wifi_get_ps()` confirmait toujours
+`WIFI_PS_NONE` avec `ESP_OK`.
+
+| Série | Intervalle | `/knx` | Immédiat `eb2432d` | Après 30 min `eb2432d` | Plus proche AP |
+|---:|---:|:---:|---:|---:|---:|
+| 1 | 100 ms | non | 18/20 | 17/20 | 17/20 |
+| 2 | 10 ms | non | 19/20 | 16/20 | 8/20 |
+| 3 | 2 ms | non | 19/20 | 16/20 | 10/20 |
+| 4 | 100 ms | oui | 19/20 | 18/20 | 14/20 |
+| 5 | 10 ms | oui | 13/20 | 15/20 | 14/20 |
+| 6 | 2 ms | oui | 11/20 | 14/20 | 8/20 |
+
+La capture `udp_multicast_bursts_closer_ap_095.pcapng` contient les 120/120
+paquets KXDG émis par le PC. Côté ESP32, le bitmap reçu par le socket est
+identique au bitmap consommé par l'application pour chaque série. Aucune perte
+de file, erreur de lecture, réinscription, déconnexion ou saturation n'a été
+observée ; l'intervalle maximal de la tâche UDP était 9221 µs.
+
+Cette position n'a donc pas amélioré la réception multicast. Le gain radio
+observé est faible et variable, et les résultats à 10 et 2 ms sont même moins
+bons que dans les deux campagnes de `eb2432d`. La distance seule n'explique pas
+les pertes ; elles restent situées avant le socket ESP32 et peuvent dépendre du
+trajet Wi-Fi vers Wi-Fi ou de la distribution multicast du réseau. Aucun
+réglage UniFi n'a été modifié pour cet essai.
