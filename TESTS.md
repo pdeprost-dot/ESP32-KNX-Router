@@ -1,5 +1,17 @@
 # Bilan des essais
 
+## 2026-10-22 - tunnel ETS6 unicast (0.9.0)
+
+- `tools/test_knx_tunnel_protocol.py` : CONNECT_RESPONSE et CRD `1.1.254`,
+  TUNNELING_ACK et cEMI transparent conformes aux vecteurs indépendants ;
+- `tools/test_ncn5130_rx_parser.py` : trames standard, étendues, consécutives et
+  octet `CC` dans les données toujours valides ;
+- compilation : RAM statique 65 496 / 327 680 octets (20,0 %), firmware
+  1 042 249 / 1 835 008 octets (56,8 %), marge OTA 792 759 octets ;
+- après OTA : version 0.9.0, Wi-Fi `example-wifi`, `192.0.2.156`, Busmon restauré
+  (`TX 01`, `RX 03`, `TX 02`, `RX 07`, `TX 05`), aucune erreur UART ;
+- tunnel désactivé par défaut, aucune session et aucune émission TP.
+
 ## 2026-10-21 - optimisation HTTP `/knx` (0.8.2)
 
 - reference 0.8.0 : 24 942 octets en 11 232 a 11 581 ms ;

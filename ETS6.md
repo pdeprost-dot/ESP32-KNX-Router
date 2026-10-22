@@ -1,17 +1,53 @@
-# Procédure ETS6 (prototype)
+# Premier tunnel ETS6 unicast (firmware 0.9.0)
 
-1. Pour le diagnostic passif avec `ROUTING_ARMED=0`, le Siemens peut rester actif. Avant d'armer le
-   routage, isoler la ligne de test : ne pas laisser le Siemens et ce prototype former deux chemins parallèles.
-2. Définir dans ETS la topologie réelle et choisir une adresse individuelle libre de coupleur.
-3. Importer/associer un produit routeur compatible `0x091A` et la version de pile employée.
-4. Mettre le prototype en mode programmation par la méthode prévue lors de l'essai (le firmware
-   n'affecte actuellement aucun bouton afin d'éviter GPIO0, broche de boot).
-5. Télécharger d'abord l'adresse individuelle, puis l'application/les paramètres et tables de filtre.
-6. Dans les interfaces ETS, rechercher le serveur KNXnet/IP sur le réseau local ; vérifier découverte,
-   description et ouverture d'un tunnel.
-7. Sur une adresse de groupe de test explicitement autorisée, observer un télégramme TP→IP puis IP→TP.
-8. Vérifier les adresses source, le compteur de routage et l'absence de répétition/boucle.
+## Capacités vérifiées
 
-L'étape 4 demande soit l'ajout d'un bouton dédié sur un GPIO libre, soit une procédure temporaire
-convenue au banc. Ne pas utiliser GPIO0 sans tenir compte de son rôle au démarrage.
+La dépendance `thelsing/knx` épinglée au commit `980c047` contient les services
+KNXnet/IP Connect, ConnectionState, Disconnect, TunnelingRequest/Ack et le
+transport cEMI des télégrammes individuels. Sa configuration permet quatre
+tunnels, mais elle ne peut pas être démarrée telle quelle dans cette
+application : elle créerait un second propriétaire du socket UDP et d'UART2.
 
+Le prototype 0.9.0 réutilise donc exclusivement les deux tâches propriétaires
+existantes et expose un serveur borné à **une session** :
+
+- interface physique du prototype : `1.1.253` ;
+- adresse individuelle réservée au client tunnel : `1.1.254` ;
+- point de terminaison : `192.0.2.156:3671` en UDP unicast ;
+- couche de tunnel : link layer (`0x02`) ;
+- routage multicast : désactivé par `ROUTING_ARMED=0` ;
+- tunnel : désactivé à chaque démarrage.
+
+La tâche UDP est seule propriétaire de `WiFiUDP`; elle traite les acquittements
+de tunnel et transmet les réponses par une file bornée. La tâche NCN5130 est
+seule propriétaire d'UART2. En mode normal elle n'acquitte sur TP que les
+télégrammes individuels destinés à `1.1.254`; elle n'applique aucun auto-ACK
+général aux télégrammes tiers.
+
+## Premier essai ETS6
+
+1. Ouvrir `http://192.0.2.156/knx` et cliquer **Activer le tunnel ETS6**.
+2. Attendre l'état `NCN5130 : Mode normal prêt`.
+3. Dans ETS6, créer/sélectionner une interface KNXnet/IP tunneling manuelle vers
+   `192.0.2.156`, port `3671` (pas une interface de routage multicast).
+4. Vérifier que la connexion reçoit l'adresse `1.1.254`.
+5. Effectuer uniquement la lecture des informations d'un appareil TP connu.
+   Ne lancer ni téléchargement, ni programmation, ni opération de masse.
+6. Après l'essai, cliquer **Désactiver et revenir en Busmon** et vérifier l'état
+   `Bus monitor passif`.
+
+Le Siemens N146/02 peut rester raccordé en Ethernet pendant cet essai unicast :
+le prototype ne fait aucun routage multicast.
+
+## Limites de cette première étape
+
+- une seule session et délai d'inactivité de 120 secondes ;
+- pas de KNX IP Secure ;
+- pas de téléchargement ETS validé ;
+- gestion individuelle transparente destinée d'abord à une lecture simple ;
+- aucune promesse de reprise/rollback de session après redémarrage ;
+- les files UDP/UART sont bornées et une saturation est comptabilisée ;
+- ce prototype n'est pas encore un routeur bidirectionnel complet.
+
+Le test logiciel `tools/test_knx_tunnel_protocol.py` vérifie indépendamment les
+octets de CONNECT_RESPONSE (CRD `1.1.254`), TUNNELING_ACK et l'encapsulation cEMI.
