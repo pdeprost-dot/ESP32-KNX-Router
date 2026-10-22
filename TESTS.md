@@ -11,6 +11,15 @@
 - après OTA : version 0.9.0, Wi-Fi `example-wifi`, `192.0.2.156`, Busmon restauré
   (`TX 01`, `RX 03`, `TX 02`, `RX 07`, `TX 05`), aucune erreur UART ;
 - tunnel désactivé par défaut, aucune session et aucune émission TP.
+- après le second OTA, un redémarrage électrique a été nécessaire pour retrouver
+  `192.0.2.156`; la version 0.9.0 est ensuite revenue sur `example-wifi` avec un
+  RSSI de -48 dBm et les routes `/knx`, `/knx-config` et `/ota` en HTTP 200 ;
+- DESCRIPTION_RESPONSE reçu de `192.0.2.156:3671` : adresse interface
+  `1.1.253`, familles Core 1 et Tunneling 1 ;
+- CONNECT_REQUEST link-layer envoyé tunnel désactivé : CONNECT_RESPONSE
+  `06 10 02 06 00 08 00 27`, refus attendu `E_NO_MORE_CONNECTIONS` ;
+- après ces requêtes passives : Busmon conservé, dialogue initial UART limité à
+  `01/03/02/07/05`, aucune erreur UART et aucune émission applicative TP.
 
 ## 2026-10-21 - optimisation HTTP `/knx` (0.8.2)
 
