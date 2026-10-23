@@ -36,4 +36,4 @@ assert "writeDiscoveryDibs(out+14)" in source
 assert "writeDiscoveryDibs(out+6)" in source
 assert "out[60]=4;out[61]=1" in source  # no Routing family advertised
 
-print("OK: SEARCH 76 bytes, DESCRIPTION 68 bytes, IA 1.1.253, Core/DM/Tunnelling only")
+print("OK: SEARCH 76 bytes, DESCRIPTION 68 bytes, configured IA, Core/DM/Tunnelling only")

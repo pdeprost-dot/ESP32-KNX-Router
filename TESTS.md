@@ -1,5 +1,23 @@
 # Bilan des essais
 
+## 2026-10-23 — référence de développement 0.14.0
+
+- compilation Wemos avec dépendances épinglées et partitions OTA 1792 Kio ;
+- tests hors ligne du bitmap complet, migrations, import/export KXRF1, cinq
+  tunnels, Device Management, séquences, doublons, expirations et arbitrage ;
+- filtre de routage validé matériellement dans les deux sens lors d'essais
+  bornés ; le tunnel est resté indépendant des politiques de routage ;
+- ETS6 : lecture et programmation validées ; Node-RED : tunnel et profil
+  persistant validés ;
+- cinq clients échangeant simultanément, routage multicast complet et cible
+  Olimex restent non validés ;
+- ressources observées : `firmware.bin` 1 097 168 octets, marge OTA réelle
+  737 840 octets, RAM statique 86 904 octets, heap minimum 130 640 octets,
+  piles Web/UDP/NCN 3 420/3 720/4 408 octets.
+
+Les traces détaillées d'installation ne sont volontairement pas incluses dans
+le dépôt publié.
+
 ## 2026-10-22 - tunnel ETS6 unicast (0.9.0)
 
 - `tools/test_knx_tunnel_protocol.py` : CONNECT_RESPONSE et CRD `1.1.254`,

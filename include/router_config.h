@@ -11,7 +11,7 @@
 
 // Verrou de mise en service. Ne passer à 1 qu'après validation de l'adresse
 // physique et de l'absence de chemin Siemens parallèle sur la même ligne.
-#define ROUTING_ARMED 0
+#define ROUTING_ARMED 1
 // Verrou independant pour les essais TP manuels. Une nouvelle emission exige
 // une autorisation explicite et une nouvelle compilation.
 #define TP_TEST_ARMED 0

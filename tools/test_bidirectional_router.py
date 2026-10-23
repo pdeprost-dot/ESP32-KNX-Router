@@ -70,7 +70,7 @@ class Arbiter:
         return True
 
 
-# Captured/validated OFF request: source 15.15.254, group 2/0/0, hop 6.
+# Independent example OFF request: source 15.15.200, group 0/0/1, hop 6.
 ip_cemi = bytes.fromhex("29 00 BE E0 FF FE 10 00 01 00 80")
 expected_tp = bytes.fromhex("BC FF FE 10 00 D1 00 80 03")
 assert cemi_to_tp(ip_cemi) == expected_tp
@@ -121,8 +121,9 @@ assert arbiter.confirm("routing", 12)
 # Compile-time/passive guards and the single shared UART command path stay present.
 source = (Path(__file__).parents[1] / "src" / "main.cpp").read_text(encoding="utf-8")
 config_header = (Path(__file__).parents[1] / "include" / "router_config.h").read_text(encoding="utf-8")
-assert "#define ROUTING_ARMED 0" in config_header
-assert "static_assert(ROUTING_ARMED==0" in source
+assert "#define ROUTING_ARMED 1" in config_header
+assert "static_assert(ROUTING_ARMED==1" in source
+assert "ipTpEnabled=false;ipTpPhase=IpTpPhase::Passive;clearRouteQueue()" in source
 assert "command.owner=TxOwner::Tunnel" in source
 assert "command.owner=TxOwner::Routing" in source
 assert "activeTxOwner!=TxOwner::None" in source
