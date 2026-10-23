@@ -6,4 +6,9 @@ backup/
 *.bin
 *.elf
 captures/
+*.pcap
+*.pcapng
+*.jsonl
+*.tmp
+*.bak
 
