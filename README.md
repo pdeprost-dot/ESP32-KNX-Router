@@ -1,153 +1,97 @@
 # ESP32-KNX-Router
 
-Référence de développement 0.14.0 d'une interface KNX TP ↔ KNXnet/IP pour
-**ESP32 Wemos D1 mini** et **NanoBCU v1.1.1 à NCN5130**.
+Firmware expérimental de passerelle KNX TP1 ↔ KNXnet/IP pour ESP32, avec
+NanoBCU/NCN5130. La branche `feature/knx-intersite-l3` correspond au firmware
+de développement **0.15.5**. Ce projet n'est ni un produit fini, ni un appareil
+certifié KNX.
 
-> Ce prototype n'est ni un routeur final, ni un produit certifié KNX. Le
-> démarrage reste passif : l'activation du routage doit être explicite depuis
-> le Web et n'est possible que dans une compilation où `ROUTING_ARMED=1`.
+## État des fonctions
 
-## État fonctionnel
+Validé sur matériel :
 
-- NCN5130 validé sur UART2 : RX ESP32 GPIO16, TX ESP32 GPIO17,
-  **38400 bauds, 8E1, polarité normale** ;
-- réception TP passive, émission TP et confirmations NCN5130 validées ;
-- tunneling unicast validé avec ETS6 pour lecture et programmation ;
-- intégration Node-RED validée avec profil tunnel persistant ;
-- cinq emplacements tunnel configurables, plus une connexion Device Management
-  séparée ; la concurrence réelle de cinq clients échangeant simultanément
-  n'est pas encore validée ;
-- politiques Web séparées IP→TP et TP→IP, avec groupe, individuel et broadcast ;
-- filtre commun aux deux sens : bitmap complet de 65 536 adresses de groupe,
-  soit 8 192 octets ; édition Web par adresses/plages et import/export KXRF1 ;
-- décisions de filtrage validées hors ligne et matériellement dans les deux sens ;
-- moteur bidirectionnel, files bornées, expirations, confirmations, arbitrage
-  tunnel/routage et protections anti-réinjection implémentés ;
-- validation complète du routage multicast en conditions réelles encore à faire ;
-- pertes multicast Wi-Fi connues ; futur portage Ethernet
-  **Olimex ESP32-POE-ISO-16MB** préparé conceptuellement mais non validé sur matériel.
+- NCN5130 en UART 38400 bauds, 8E1, polarité normale ;
+- trames TP1 standard, routage KNXnet/IP et tunneling ETS6 ;
+- cinq emplacements de tunnel configurables (la concurrence de cinq clients
+  actifs simultanément reste à valider) ;
+- intégration Node-RED par tunnel unicast ;
+- Olimex ESP32-POE-ISO-16MB, Ethernet/PoE et OTA Ethernet ;
+- filtres de routage Web sur bitmap commun de 8192 octets ;
+- KXL3 entre deux ESP partageant le même segment TP1, en mode monitor-only,
+  sans réinjection physique.
 
-Les preuves détaillées propres à l'installation, captures réseau, journaux et
-sauvegardes flash/NVS ne sont pas publiés.
+Validé hors ligne ou en simulation :
 
-## Dépendances et licence
+- codec TP1 standard et étendu jusqu'à 263 octets ;
+- réinjection KXL3 → TP1 simulée et anti-boucle multisite ;
+- simulateur TP1 pour développer KNXnet/IP sans NCN5130.
 
-- ESP32 Arduino via PlatformIO `espressif32@6.12.0` ;
-- [thelsing/knx](https://github.com/thelsing/knx), commit
+Reste à valider physiquement :
+
+- KXL3 entre deux segments TP1 distincts et à travers un VPN L3 ;
+- concurrence réelle de cinq clients tunneling ;
+- télégrammes Siemens Synco/LTE réels ;
+- comportement multicast Wi-Fi dans toutes les infrastructures.
+
+Le démarrage reste passif. Les tunnels et les sens de routage ne deviennent
+effectifs qu'après configuration et activation explicites. KXL3 est également
+désactivé au démarrage.
+
+## Matériel et cibles
+
+| Environnement PlatformIO | Réseau | TP1 |
+|---|---|---|
+| `wemos_d1_mini32` | Wi-Fi | NCN5130, RX GPIO16 / TX GPIO17 |
+| `olimex_poe_iso_16mb` | Ethernet LAN8720 | NCN5130, RX GPIO36 / TX GPIO4 |
+| `olimex_poe_iso_16mb_wifi` | Wi-Fi de développement | NCN5130 |
+| `olimex_poe_iso_16mb_wifi_simulated` | Wi-Fi de développement | simulé |
+
+La cible Olimex emploie une table de partitions OTA pour flash 16 Mio. La cible
+Wemos conserve ses deux emplacements OTA de 1792 Kio.
+
+## Dépendances et compilation
+
+- PlatformIO `espressif32@6.12.0` ;
+- [ESP_BASE](https://github.com/pdeprost-dot/ESP_BASE) `esp-base-2.4.2` ;
+- [thelsing/knx](https://github.com/thelsing/knx) au commit
   `980c047ad7fc5e27bf2fae95e48acde5d5e0b4fd` ;
-- [ESP_BASE](https://github.com/pdeprost-dot/ESP_BASE) **2.4.1**, commit
-  `f4d8a4790b29aa93bb87af09ac57d9b76c000d7c` ;
-- PubSubClient `2.8`.
+- PubSubClient 2.8.
 
-Les versions sont épinglées dans [platformio.ini](platformio.ini). La dépendance
-thelsing/knx est sous GPL v3 ; ce dépôt est donc sous GPL-3.0-only. ESP_BASE et
-PubSubClient sont sous licence MIT. Voir
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-## Câblage Wemos
-
-Couper les alimentations avant câblage.
-
-| NanoBCU | ESP32 / bus |
-|---|---|
-| TX | GPIO16 (RX ESP32) |
-| RX | GPIO17 (TX ESP32) |
-| GND | GND ESP32 commun |
-| KNX | rouge du bus KNX |
-| GND bus | noir du bus KNX |
-| SAV et sorties 3V3 | non raccordés |
-
-L'ESP32 est alimenté par USB. Ces GPIO sont propres à la cible Wemos et ne
-doivent pas être repris sans vérification sur l'Olimex.
-
-## Compilation et tests
-
-```powershell
-git clone https://github.com/EXEMPLE/ESP32-KNX-Router.git
-cd ESP32-KNX-Router
-pio run
+```text
+pio run -e wemos_d1_mini32
+pio run -e olimex_poe_iso_16mb
+pio run -e olimex_poe_iso_16mb_wifi_simulated
 ```
 
-Tests hors ligne principaux :
+ESP_BASE mémorise la configuration Wi-Fi. Aucun secret n'est nécessaire dans
+le dépôt. `include/secrets.h.example` ne contient que des valeurs fictives.
 
-```powershell
-Get-ChildItem tools/test_*.py | ForEach-Object { python $_.FullName }
-```
+## Interfaces
 
-Le partitionnement [partitions_ota_1792.csv](partitions_ota_1792.csv) fournit
-deux emplacements OTA de 1 835 008 octets, avec NVS, métadonnées OTA, SPIFFS et
-coredump. Pour la référence publique 0.14.0, `firmware.bin` mesure
-**1 097 168 octets**, soit une marge réelle de **737 840 octets** par
-emplacement OTA.
+Les pages principales sont `/knx`, `/knx-config`, `/knx-advanced`,
+`/knx-maintenance`, `/knx-help` et `/knx-intersite`. ESP_BASE ajoute notamment
+`/logs` et `/ota`.
 
-### Premier flash USB
+La configuration Web/OTA ne dispose pas d'authentification applicative : elle
+doit rester sur un LAN de confiance. KXL3 transporte des datagrammes UDP
+unicast avec CRC32, identité de site, séquence, ACK et anti-doublon. Ces
+mécanismes ne sont **pas** une authentification cryptographique ; utiliser KXL3
+uniquement sur un réseau maîtrisé ou protégé par VPN.
 
-```powershell
-pio run --target upload --upload-port COM3
-pio device monitor --port COM3 --baud 115200
-```
+## Documentation
 
-### Mise à jour OTA
+- [Protocole KXL3](docs/KNX_INTERSITE_L3_PROTOCOL.md)
+- [Validation KXL3 monitor-only sur un TP1 partagé](docs/VALIDATION_KXL3_TWO_ESP_SAME_TP1.md)
+- [Validation des trames étendues](docs/VALIDATION_KNX_EXTENDED_FRAMES.md)
+- [Simulateur TP1](docs/TP1_SIMULATOR.md)
+- [Portage Olimex](OLIMEX_PORT.md)
+- [Tests](TESTS.md)
 
-Depuis un réseau local de confiance :
-
-```powershell
-curl.exe --fail-with-body --max-time 120 `
-  -F "firmware=@.pio/build/wemos_d1_mini32/firmware.bin;type=application/octet-stream" `
-  http://192.0.2.156/api/ota
-```
-
-`192.0.2.0/24` est un réseau réservé à la documentation.
-
-## Mise en service Web
-
-ESP_BASE configure et conserve le Wi-Fi. Le fichier
-[include/secrets.h.example](include/secrets.h.example) ne contient que des
-valeurs fictives ; `include/secrets.h` est ignoré et ne doit jamais être publié.
-
-- `/knx` : état KNX, sessions, compteurs et journaux bornés ;
-- `/knx-config` : adresse du routeur, cinq adresses tunnel, routage et filtres ;
-- `/ota` : mise à jour ;
-- `/logs` : journaux ESP_BASE.
-
-Après remise à zéro, aucune adresse individuelle d'installation n'est fournie :
-la page indique que la configuration est requise. Les cinq adresses tunnel
-doivent être distinctes, libres, différentes de celle du routeur et réservées
-dans ETS. Un emplacement sans adresse reste indisponible.
-
-Le format texte KXRF1 accepte des adresses et plages de groupe. La requête
-d'import est limitée à **12 288 octets** ; tout dépassement est rejeté
-explicitement. La représentation persistante n'est pas une liste de 64 plages :
-elle couvre réellement les 65 536 adresses au moyen d'un bitmap commun de
-8 192 octets.
-
-## ETS6 et Node-RED
-
-ETS6 utilise KNXnet/IP Tunneling UDP sur le port configuré. La lecture
-d'informations et un téléchargement de paramètres réversible ont été validés.
-La connexion Device Management possède son propre canal et ne consomme pas un
-des cinq emplacements tunnel.
-
-Node-RED a été validé avec `node-red-contrib-knx-ultimate` en mode Tunnel UDP.
-Le profil activé dans l'application est conservé en NVS et restauré au
-redémarrage. Les adresses dépendent de l'installation et ne sont pas codées en
-dur dans la configuration d'usine.
-
-## Sécurité et limites
-
-- ESP_BASE 2.4.1 n'apporte pas d'authentification Web ou OTA : utiliser un
-  LAN/VLAN de confiance ;
-- aucun HTTPS et aucun rollback OTA applicatif automatique ne sont garantis ;
-- conserver un accès USB et une image connue ;
-- le routage démarre toujours passif, même lorsque sa capacité est compilée ;
-- éviter deux chemins IP/TP parallèles avant validation de la topologie et des
-  protections anti-boucle ;
-- le filtrage du routage est indépendant du tunneling ETS/Node-RED ;
-- le portage Olimex, le transport Ethernet et cinq clients simultanément actifs
-  restent à valider sur matériel.
+Les adresses IP et identifiants de sites présentés dans la documentation
+publique sont des exemples. Les configurations d'installation, captures réseau,
+journaux, sauvegardes flash/NVS et secrets ne sont pas publiés.
 
 ## Licence
 
-Copyright © 2026 Pierre de Prost.
-
-GNU General Public License version 3 uniquement. Voir [LICENSE](LICENSE).
+Le projet est distribué sous GPL-3.0-only, conformément à la dépendance
+thelsing/knx. Voir [LICENSE](LICENSE) et
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

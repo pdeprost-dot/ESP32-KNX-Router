@@ -557,3 +557,18 @@ est resté passif, file vide, sans émission TP ni tunnel.
   dBm ;
 - état final après OTA de libellé hors campagne : profil actif et persistant,
   canal 1, `15.15.22`, file vide, `ROUTING_ARMED=0`.
+
+## Référence 0.15.5 : TP1 étendu et KXL3
+
+- `tools/test_extended_frames.py` : limites des trames TP1 standard/étendues,
+  FCS, troncature et index NCN5130 validés hors ligne ;
+- `tools/test_knx_intersite_l3.py` : enveloppes, CRC32, identités, séquences,
+  ACK, pertes, doublons, redémarrage et boucle à trois sites validés ;
+- `KXL3_MONITOR_ONLY` validé sur deux ESP observant le même segment TP1 :
+  65 DATA envoyés/reçus et 65 ACK, sans timeout, erreur CRC, saturation ou
+  réinjection TP1 ;
+- compilations reproductibles réussies pour `wemos_d1_mini32`,
+  `olimex_poe_iso_16mb` et `olimex_poe_iso_16mb_wifi_simulated` avec
+  ESP_BASE récupéré depuis le tag `esp-base-2.4.2` ;
+- le mode bridge KXL3 entre deux segments TP1 distincts, le VPN L3 et les
+  télégrammes Siemens Synco/LTE réels restent à valider physiquement.

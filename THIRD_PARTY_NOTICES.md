@@ -6,7 +6,7 @@ dépôt :
 | Composant | Version épinglée | Licence |
 |---|---|---|
 | [thelsing/knx](https://github.com/thelsing/knx) | commit `980c047ad7fc5e27bf2fae95e48acde5d5e0b4fd` | GNU GPL v3 |
-| [ESP_BASE](https://github.com/pdeprost-dot/ESP_BASE) | `2.4.1`, commit `f4d8a4790b29aa93bb87af09ac57d9b76c000d7c` | MIT |
+| [ESP_BASE](https://github.com/pdeprost-dot/ESP_BASE) | tag `esp-base-2.4.2` | MIT |
 | [PubSubClient](https://github.com/knolleary/pubsubclient) | `2.8` | MIT |
 | Arduino core for ESP32 | plateforme PlatformIO `espressif32@6.12.0` | licences du projet Espressif/Arduino |
 

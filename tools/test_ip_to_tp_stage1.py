@@ -1,6 +1,6 @@
 """Reference independante de la conversion de validation IP vers TP."""
 
-# ROUTING_INDICATION d'exemple : 15.15.200 -> 0/0/1, GroupValueWrite OFF,
+# ROUTING_INDICATION emise par le PC : 15.15.254 -> 2/0/0, GroupValueWrite OFF,
 # compteur IP 6. Le controle cEMI demande un ACK au routeur IP; ce bit ne doit
 # pas devenir le bit reserve du controle TP.
 KNX_IP = bytes.fromhex(

@@ -2,8 +2,10 @@
 """Bounded KNXnet/IP SEARCH/DESCRIPTION probe with structural decoding."""
 
 import argparse
+import ipaddress
 import socket
 import struct
+import time
 
 
 def hpai(address: str, port: int) -> bytes:
@@ -51,27 +53,57 @@ def decode(data: bytes, peer: tuple[str, int]) -> None:
     print("  structure complete")
 
 
+def route_address(target: str) -> str:
+    """Return the local IPv4 selected by the OS route to target."""
+    probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        probe.connect((target, 3671))
+        return probe.getsockname()[0]
+    finally:
+        probe.close()
+
+
 def request(target: str, service: int, timeout: float) -> bool:
+    multicast = ipaddress.ip_address(target).is_multicast
+    local_ip = route_address(target)
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind(("0.0.0.0", 0))
-    sock.connect((target, 3671))
-    local_ip, local_port = sock.getsockname()
+    sock.bind((local_ip, 0))
+    if multicast:
+        # A connected UDP socket would only accept datagrams from the multicast
+        # peer. KNXnet/IP SEARCH_RESPONSE is instead sent as unicast by each
+        # discovered server, so keep this socket deliberately unconnected.
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(local_ip))
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 1)
+    local_port = sock.getsockname()[1]
     packet = frame(service, hpai(local_ip, local_port))
     print(f"TX service=0x{service:04X} {local_ip}:{local_port} -> {target}:3671: {packet.hex(' ').upper()}")
-    sock.send(packet)
-    sock.settimeout(timeout)
-    try:
-        data = sock.recv(2048)
-    except socket.timeout:
+    sock.sendto(packet, (target, 3671))
+    deadline = time.monotonic() + timeout
+    responders: set[tuple[str, int]] = set()
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        sock.settimeout(remaining)
+        try:
+            data, peer = sock.recvfrom(2048)
+        except socket.timeout:
+            break
+        responders.add(peer)
+        decode(data, peer)
+        if not multicast:
+            break
+    sock.close()
+    if not responders:
         print("  timeout")
         return False
-    decode(data, (target, 3671))
+    print(f"  responders={len(responders)}")
     return True
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--target", default="192.0.2.156")
+    parser.add_argument("--target", default="192.0.2.10")
     parser.add_argument("--timeout", type=float, default=2.0)
     args = parser.parse_args()
     search = request(args.target, 0x0201, args.timeout)

@@ -13,7 +13,7 @@ def hpai(ip: str, port: int) -> bytes:
     return bytes([8, 1]) + octets + struct.pack("!H", port)
 
 
-client_ip = "192.0.2.123"
+client_ip = "192.0.2.20"
 connect = header(0x0205, 26) + hpai(client_ip, 41000) + hpai(client_ip, 41001) + bytes([4, 4, 2, 0])
 assert len(connect) == 26
 assert connect[23] == 4 and connect[24] == 2
@@ -21,7 +21,7 @@ assert connect[23] == 4 and connect[24] == 2
 response = (
     header(0x0206, 20)
     + bytes([1, 0])
-    + hpai("192.0.2.156", 3671)
+    + hpai("192.0.2.10", 3671)
     + bytes([4, 4, 0x11, 0xFE])
 )
 assert len(response) == 20
@@ -30,7 +30,7 @@ assert response[-2:] == bytes.fromhex("11 FE")  # 1.1.254
 second_response = (
     header(0x0206, 20)
     + bytes([3, 0])
-    + hpai("192.0.2.156", 3671)
+    + hpai("192.0.2.10", 3671)
     + bytes([4, 4, 0x11, 0xFC])
 )
 assert second_response[-2:] == bytes.fromhex("11 FC")  # 1.1.252
@@ -49,7 +49,7 @@ assert management_connect[22:] == bytes([2, 3])
 management_response = (
     header(0x0206, 18)
     + bytes([2, 0])
-    + hpai("192.0.2.156", 3671)
+    + hpai("192.0.2.10", 3671)
     + bytes([2, 3])
 )
 assert len(management_response) == 18

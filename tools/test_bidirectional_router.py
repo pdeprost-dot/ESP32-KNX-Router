@@ -36,7 +36,7 @@ def tp_to_routing(tp: bytes) -> bytes:
 
 
 class Fingerprints:
-    def __init__(self, ttl_ms=100):
+    def __init__(self, ttl_ms=500):
         self.ttl_ms = ttl_ms
         self.items = []
 
@@ -70,7 +70,7 @@ class Arbiter:
         return True
 
 
-# Independent example OFF request: source 15.15.200, group 0/0/1, hop 6.
+# Captured/validated OFF request: source 15.15.254, group 2/0/0, hop 6.
 ip_cemi = bytes.fromhex("29 00 BE E0 FF FE 10 00 01 00 80")
 expected_tp = bytes.fromhex("BC FF FE 10 00 D1 00 80 03")
 assert cemi_to_tp(ip_cemi) == expected_tp
@@ -107,7 +107,7 @@ fingerprints.remember(1000, expected_tp)
 assert fingerprints.consume(1050, expected_tp)
 assert not fingerprints.consume(1060, expected_tp)
 fingerprints.remember(2000, expected_tp)
-assert not fingerprints.consume(2101, expected_tp)
+assert not fingerprints.consume(2501, expected_tp)
 
 # Tunnel and routing share one UART transaction; stale/wrong confirmations are ignored.
 arbiter = Arbiter()
@@ -128,5 +128,6 @@ assert "command.owner=TxOwner::Tunnel" in source
 assert "command.owner=TxOwner::Routing" in source
 assert "activeTxOwner!=TxOwner::None" in source
 assert "routeIpToTp=false,routeTpToIp=false" in source
+assert "kRouteFingerprintTtlMs=500" in source
 
 print("OK: conversions, hop count, FCS, bounded expiry, one-shot echoes and UART arbitration")
