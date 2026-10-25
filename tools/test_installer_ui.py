@@ -31,6 +31,22 @@ assert "Import limite a 12 288 octets" in source
 assert "Le filtrage du routing ne s'applique pas aux tunnels" in source
 assert "tunnel.enabled||ipTpEnabled" in source
 
+# WebResponse streams a chunked HTTP response: writing an empty string emits
+# the terminating zero-length chunk. Optional NVS values must therefore be
+# skipped instead of being passed to WebResponse::write().
+installer = source[source.index("void installerConfigPage"):source.index("void productConfigPage")]
+assert "if(pa[0])r.write(pa)" in installer
+assert "if(address[0])r.write(address)" in installer
+assert installer.count("name='tunnel_%u'") == 1
+for required in (
+    "Routage IP vers TP",
+    "Routage TP vers IP",
+    "Table commune de groupes autorises",
+    "Paramètres réseau KNX/IP avancés",
+    "Enregistrer la configuration",
+):
+    assert required in installer
+
 summary = source[source.index("void statePage"):source.index("void advancedPage")]
 assert " us" not in summary and "microseconde" not in summary
 assert "U_Reset" not in summary and "UART" not in summary
